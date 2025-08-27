@@ -1,0 +1,11 @@
+[package]
+name = "demo-game"
+version = "0.1.0"
+edition = "2024"
+description = "A simple demo game to get into SDL3 and learn more about Rust"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+sdl3 = { version = "0.14.41" }
