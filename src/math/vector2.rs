@@ -1,10 +1,11 @@
 use crate::math::VectorOps;
 use std::ops::{Add, Div, Mul, Sub};
+use sdl3::render::FPoint;
 
 #[derive(PartialEq, Debug, Default, Clone, Copy)]
 pub struct Vector2<T> {
-    x: T,
-    y: T,
+    pub x: T,
+    pub y: T,
 }
 
 impl Vector2<f32> {
@@ -121,6 +122,30 @@ where
         Vector2 {
             x: self.x / rhs,
             y: self.y / rhs,
+        }
+    }
+}
+
+impl<T> From<FPoint> for Vector2<T>
+where
+    T: From<f32>
+{
+    fn from(value: FPoint) -> Self {
+        Self {
+            x: T::from(value.x),
+            y: T::from(value.y),
+        }
+    }
+}
+
+impl<T> From<Vector2<T>> for FPoint
+where
+    T: Into<f32>
+{
+    fn from(value: Vector2<T>) -> Self {
+        Self {
+            x: T::into(value.x),
+            y: T::into(value.y),
         }
     }
 }

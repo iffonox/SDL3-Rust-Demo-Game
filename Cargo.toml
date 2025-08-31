@@ -9,3 +9,5 @@ license = "MIT"
 
 [dependencies]
 sdl3 = { version = "0.14.41", features = ["ttf"] }
+bitmask = "0.5.0"
+bitmask-enum = "2.2.5"

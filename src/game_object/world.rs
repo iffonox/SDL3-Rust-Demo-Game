@@ -1,6 +1,6 @@
 use crate::game_object::{Bounds, Drawable, GameObject, PhysicsBody};
 use sdl3::render::FRect;
-use std::collections::HashSet;
+use crate::game::Action;
 
 #[derive(PartialEq, Eq, Debug, Default)]
 pub enum BorderType {
@@ -47,19 +47,15 @@ impl World {
             .sort_by_key(|b| b.drawable.as_ref().map(|d| d.z).unwrap_or_default());
     }
 
-    pub fn handle_inputs(&mut self, actions: &HashSet<crate::game::Action>) {
-
-    }
-
-    pub fn tick_physics(&mut self, delta_t: u64) {
+    pub fn tick(&mut self, delta_t: u64, actions: Action) {
         for i in 0..self.game_objects.len() {
             let game_object = &mut self.game_objects[i];
 
-            game_object.tick(delta_t);
+            game_object.tick(delta_t, actions);
         }
     }
 
-    pub fn get_drawables(&self, delta_t: u64) -> Vec<(FRect, &Drawable)> {
+    pub fn get_drawables(&self) -> Vec<(FRect, &Drawable)> {
         let mut vec = Vec::new();
 
         for i in 0..self.game_objects.len() {

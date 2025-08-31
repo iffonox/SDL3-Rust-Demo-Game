@@ -7,6 +7,8 @@ pub trait Bounds {
     fn right(&self) -> f32;
     fn center(&self) -> FPoint;
 
+    fn set_center<T: Into<FPoint>>(&mut self, position: T);
+
     fn is_inside(&self, point: FPoint) -> bool {
         let top = self.top();
         let bottom = self.bottom();
@@ -103,6 +105,13 @@ impl Bounds for FRect {
             x: (self.left() + self.right())/2.0,
             y: (self.top() + self.bottom())/2.0,
         }
+    }
+
+    fn set_center<T: Into<FPoint>>(&mut self, position: T) {
+        let point = position.into();
+
+        self.x = point.x - self.w/2.0;
+        self.y = point.y - self.h/2.0;
     }
 }
 
