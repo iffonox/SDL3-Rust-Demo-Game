@@ -19,51 +19,8 @@ pub trait Bounds {
     }
 
     fn intersects<T: Bounds>(&self, other: T) -> bool {
-        let top = other.top();
-        let bottom = other.bottom();
-        let left = other.left();
-        let right = other.right();
-
-        let s_top = self.top();
-        let s_bottom = self.bottom();
-        let s_left = self.left();
-        let s_right = self.right();
-
-        let any_point_inside_self = self.is_inside(FPoint {
-            x: left,
-            y: top,
-        }) || self.is_inside(FPoint {
-            x: right,
-            y: top,
-        }) || self.is_inside(FPoint {
-            x: left,
-            y: bottom,
-        }) || self.is_inside(FPoint {
-            x: right,
-            y: bottom,
-        });
-
-        let any_point_inside_other = other.is_inside(FPoint {
-            x: s_left,
-            y: s_top,
-        }) || other.is_inside(FPoint {
-            x: s_right,
-            y: s_top,
-        }) || other.is_inside(FPoint {
-            x: s_left,
-            y: s_bottom,
-        }) || other.is_inside(FPoint {
-            x: s_right,
-            y: s_bottom,
-        });
-
-        let vertical_area_overlaps =
-            s_top > top && s_bottom < bottom && (s_left < left && s_right > left || s_left < right && s_right > right);
-
-        let horizontal_area_overlaps =
-            s_left > left && s_right < right && (s_top < top && s_bottom > top || s_top < bottom && s_bottom > bottom);
-
-        any_point_inside_self || any_point_inside_other || vertical_area_overlaps || horizontal_area_overlaps
+		self.left() <= other.right() && self.right() >= other.left() &&
+			self.top() <= other.bottom() && self.bottom() >= other.top()
     }
 }
 
