@@ -48,7 +48,7 @@ impl World {
     }
 
     pub fn tick(&mut self, delta_t: u64, actions: Action) {
-		let rects: Vec<FRect> = self.game_objects.iter().map(|o|  o.bounds).collect();
+		let rects: Vec<(i32, FRect)> = self.game_objects.iter().map(|o| (o.id, o.bounds)).collect();
 		
         for i in 0..self.game_objects.len() {
             let game_object = &mut self.game_objects[i];

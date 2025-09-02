@@ -8,6 +8,7 @@ use crate::math::vector2::Vector2;
 use sdl3::pixels::Color;
 use sdl3::render::{FRect};
 use crate::game::Action;
+use crate::game_data::AssetId;
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 
 pub type PhysicsVector = Vector2<f32>;
@@ -15,7 +16,7 @@ pub type PhysicsVector = Vector2<f32>;
 pub struct Drawable {
     pub z: i32,
     pub color: Color,
-    pub texture: Option<usize>, // index of the texture
+    pub texture: Option<AssetId>, // index of the texture
 	pub tint_texture: bool, // if the texture should be tinted by the color
 }
 
@@ -80,7 +81,7 @@ impl GameObject {
         }
     }
 
-    pub fn tick(&mut self, delta_t: u64, actions: Action, other_bounds: &Vec<FRect>) -> BehaviourResult {
+    pub fn tick(&mut self, delta_t: u64, actions: Action, other_bounds: &Vec<(i32, FRect)>) -> BehaviourResult {
         let behaviours = &mut self.behaviours;
         let mut bounds = self.bounds;
 

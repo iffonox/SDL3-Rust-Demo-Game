@@ -1,0 +1,42 @@
+{
+	"name": "Demo-Level",
+	"start": {
+		"x": 0,
+		"y": 0
+	},
+	"bounds": {
+		"x": 0,
+		"y": 0,
+		"w": 800,
+		"h": 600
+	},
+	"objects": [
+		{
+			"id": 1,
+			"texture_id": 1,
+			"tint_texture": false,
+			"color": {
+				"r": 0,
+				"g": 0,
+				"b": 0,
+				"a": 0
+			},
+			"bounds": {
+				"x": 10,
+				"y": 10,
+				"w": 64,
+				"h": 64
+			},
+			"behaviours": [
+				{
+					"type": "Dvd",
+					"use_world_bounds": true,
+					"speed": {
+						"x": 20,
+						"y": 35
+					}
+				}
+			]
+		}
+	]
+}

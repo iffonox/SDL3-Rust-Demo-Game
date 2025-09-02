@@ -1,11 +1,21 @@
 mod game_object;
 mod game;
 mod math;
+mod game_data;
 
+use std::fs::File;
+use std::io::BufReader;
+use std::path::Path;
 use sdl3::ttf;
 use crate::game::Game;
+use crate::game_data::GameData;
 
 fn main() {
+	let path = Path::new("./assets/assets.json");
+	let file = File::open(path).expect("Could not open assets.json");
+	let reader = BufReader::new(file);
+	let game_data: GameData = serde_json::from_reader(reader).expect("Could not parse assets.json");
+
 	let sdl_context = sdl3::init().unwrap();
 	let video_subsystem = sdl_context.video().unwrap();
 	let ttf_context = ttf::init();
@@ -22,7 +32,7 @@ fn main() {
 
 	let ttf_context = ttf_context.expect("font context init error");
 
-	let mut game: Game = Game::new(800, 600, &sdl_context, &mut canvas, &texture_creator, &ttf_context);
+	let mut game: Game = Game::new(800, 600, &game_data, &sdl_context, &mut canvas, &texture_creator, &ttf_context);
 
 	game.run();
 }

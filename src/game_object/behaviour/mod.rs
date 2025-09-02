@@ -1,5 +1,6 @@
 pub mod dvd;
 pub mod controllable;
+mod collision;
 
 use sdl3::render::FRect;
 use crate::game::Action;
@@ -8,7 +9,7 @@ use crate::game::Action;
 pub struct BehaviourParameter<'a> {
 	pub bounds: FRect,
 	pub actions: Action,
-	pub other_bounds: &'a Vec<FRect>,
+	pub other_bounds: &'a Vec<(i32, FRect)>,
 }
 
 pub struct BehaviourResult {

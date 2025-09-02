@@ -1,23 +1,21 @@
+use crate::game_data::{AssetId, FontDefinition, GameData, LevelData, LevelDefinition, TextureDefinition};
 use crate::game_object::world::World;
-use crate::game_object::{Drawable, GameObject, PhysicsVector};
+use crate::math::bounds::Bounds;
+use bitmask_enum::bitmask;
+use sdl3::Sdl;
 use sdl3::event::Event;
 use sdl3::keyboard::{Keycode, Mod};
-use sdl3::pixels::{Color};
+use sdl3::pixels::Color;
 use sdl3::render::{FPoint, FRect, TextureCreator, WindowCanvas};
 use sdl3::surface::Surface;
 use sdl3::ttf::{Font, Sdl3TtfContext};
-use sdl3::{Sdl};
-use std::collections::{HashMap};
-use std::fs::read_dir;
+use sdl3::video::WindowContext;
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
-use sdl3::libc::{rand, RAND_MAX};
-use sdl3::video::WindowContext;
-use crate::math::bounds::Bounds;
-use bitmask_enum::bitmask;
-use crate::game_object::behaviour::controllable::ControllableBehaviour;
-use crate::game_object::behaviour::dvd::DvdBehaviour;
 
 static FPS_LIMIT: u64 = 60;
 static MIN_FRAME_TIME: u64 = 1_000u64 / FPS_LIMIT;
@@ -41,16 +39,16 @@ pub enum Action {
 pub struct Game<'a> {
     keymap: HashMap<Keycode, Action>,
     actions: Action,
+    game_data: &'a GameData,
     sdl_context: &'a Sdl,
     texture_creator: &'a TextureCreator<WindowContext>,
     canvas: &'a mut WindowCanvas,
-    ttf_context: &'a Sdl3TtfContext,
-    font: Font<'a>,
-	surfaces: Vec<Surface<'a>>,
-    texture_names: Vec<String>,
+    fonts: HashMap<AssetId, Font<'a>>,
+    surfaces: HashMap<AssetId, Surface<'a>>,
     keymod: Mod,
     world: World,
     bg_color: Color,
+	level_data: Vec<LevelData>,
     last_tick: u64,
     frame_time: u64,
     frame_number: u64,
@@ -66,48 +64,32 @@ impl<'a> Game<'a> {
     pub fn new(
         width: u32,
         height: u32,
+        game_data: &'a GameData,
         sdl_context: &'a Sdl,
         canvas: &'a mut WindowCanvas,
         texture_creator: &'a TextureCreator<WindowContext>,
-        ttf_context: &'a Sdl3TtfContext
+        ttf_context: &'a Sdl3TtfContext,
     ) -> Self {
-        let font_path = Path::new("./assets/fonts/static/JetBrainsMono-Medium.ttf");
+		let fonts = Self::load_fonts(&game_data.fonts, ttf_context);
 
-        // Load textures
-        let mut surfaces = Vec::new();
-        let mut texture_names = Vec::new();
+		let surfaces = Self::load_surfaces(&game_data.textures);
 
-        let dir = read_dir(Path::new("./assets/textures/")).expect("readdir error");
+		let keymap = Self::load_keymap();
 
-        for res in dir {
-            if let Ok(entry) = res {
-                let path = entry.path();
-
-                if path.extension().unwrap() == "bmp" {
-                    let name = path.file_name().expect("file name error");
-                    let name1 = name.to_str().expect("name error");
-                    let surface = Surface::load_bmp(entry.path()).expect("image load error");
-
-					surfaces.push(surface);
-					texture_names.push(String::from(name1));
-                }
-            }
-        }
+		let level_data = Self::load_levels(&game_data.levels);
 
         Self {
-            keymap: HashMap::new(),
+            keymap,
             actions: Action::None,
+            game_data,
+			level_data,
             texture_creator,
-            ttf_context,
-			surfaces,
-            texture_names,
+            surfaces,
             keymod: Mod::NOMOD,
             world: World::new(width as f32, height as f32),
             sdl_context,
             canvas,
-            font: ttf_context
-                .load_font(font_path, 12.0)
-                .expect("Font loading error"),
+            fonts,
             bg_color: Color::RGB(255, 255, 255),
             last_tick: 0,
             frame_time: 0,
@@ -121,23 +103,76 @@ impl<'a> Game<'a> {
         }
     }
 
+	fn load_surfaces(texture_definitions: &Vec<TextureDefinition>) -> HashMap<AssetId, Surface<'a>> {
+		let mut surfaces = HashMap::new();
+
+		for i in 0..texture_definitions.len() {
+			let texture_definition = &texture_definitions[i];
+			let path = Path::new(&texture_definition.path);
+			let surface = Surface::load_bmp(path).expect("image load error");
+
+			surfaces.insert(texture_definition.id, surface);
+		}
+
+		surfaces
+	}
+
+	fn load_fonts(font_definitions: &Vec<FontDefinition>, ttf_context: &Sdl3TtfContext) -> HashMap<AssetId, Font<'a>> {
+		let mut fonts = HashMap::new();
+
+		for i in 0..font_definitions.len() {
+			let font_definition = &font_definitions[i];
+			let path = Path::new(&font_definition.path);
+			let surface = ttf_context
+				.load_font(path, font_definition.size)
+				.expect("Font loading error");
+
+			fonts.insert(font_definition.id, surface);
+		}
+
+		fonts
+	}
+
+	fn load_keymap() -> HashMap<Keycode, Action> {
+		let mut keymap = HashMap::new();
+
+		// Load keymap, will later be loaded from a config file
+
+        keymap.insert(Keycode::Escape, Action::Quit);
+        keymap.insert(Keycode::F2, Action::Debug);
+        keymap.insert(Keycode::F3, Action::FpsLimit);
+        keymap.insert(Keycode::W, Action::MoveUp);
+        keymap.insert(Keycode::A, Action::MoveLeft);
+        keymap.insert(Keycode::S, Action::MoveDown);
+        keymap.insert(Keycode::D, Action::MoveRight);
+        keymap.insert(Keycode::Space, Action::Jump);
+        keymap.insert(Keycode::LShift, Action::Sprint);
+        keymap.insert(Keycode::LCtrl, Action::Duck);
+        keymap.insert(Keycode::RCtrl, Action::Attack);
+
+		keymap
+    }
+
+	fn load_levels(level_definitions: &Vec<LevelDefinition>) -> Vec<LevelData> {
+		let mut levels = Vec::new();
+
+		for i in 0..level_definitions.len() {
+			let level_definition = &level_definitions[i];
+			let path = Path::new(&level_definition.path);
+			let file = File::open(path).expect("Could not open level json");
+			let reader = BufReader::new(file);
+			let level = serde_json::from_reader(reader).expect("Could not parse level json");
+
+			levels.push(level)
+		}
+
+		levels
+	}
+
     fn init(&mut self) {
-        // Load keymap, will later be loaded from a save file
-
-        self.keymap.insert(Keycode::Escape, Action::Quit);
-        self.keymap.insert(Keycode::F2, Action::Debug);
-        self.keymap.insert(Keycode::F3, Action::FpsLimit);
-        self.keymap.insert(Keycode::W, Action::MoveUp);
-        self.keymap.insert(Keycode::A, Action::MoveLeft);
-        self.keymap.insert(Keycode::S, Action::MoveDown);
-        self.keymap.insert(Keycode::D, Action::MoveRight);
-        self.keymap.insert(Keycode::Space, Action::Jump);
-        self.keymap.insert(Keycode::LShift, Action::Sprint);
-        self.keymap.insert(Keycode::LCtrl, Action::Duck);
-        self.keymap.insert(Keycode::RCtrl, Action::Attack);
-
         // Load game objects, will later be loaded from level file modified by a save file
 
+		/*
         let num_textures = self.surfaces.len().clamp(0, 3);
         let (width, height) = self.canvas.output_size().expect("output size error");
         let bounds = FRect {
@@ -173,9 +208,11 @@ impl<'a> Game<'a> {
                 z: i as i32,
                 color: Color::RGB(25 * i as u8, 0, 255 - i as u8 * 25),
                 texture: Some(texture_index),
-				tint_texture: false,
+                tint_texture: false,
             });
-            game_object.behaviours.push(Box::new(DvdBehaviour::new(bounds, speed)));
+            game_object
+                .behaviours
+                .push(Box::new(DvdBehaviour::new(bounds, speed)));
 
             self.world.add_game_object(game_object);
         }
@@ -190,12 +227,15 @@ impl<'a> Game<'a> {
         game_object.drawable = Some(Drawable {
             z: 100,
             color: Color::MAGENTA,
-            texture: Some(3),
-			tint_texture: true,
+            texture: Some(self.texture_names["player.bmp"]),
+            tint_texture: true,
         });
-        game_object.behaviours.push(Box::new(ControllableBehaviour::new(bounds, 50.0, 200.0)));
+        game_object
+            .behaviours
+            .push(Box::new(ControllableBehaviour::new(bounds, 50.0, 200.0)));
 
         self.world.add_game_object(game_object);
+		*/
     }
 
     pub fn run(&mut self) {
@@ -263,25 +303,29 @@ impl<'a> Game<'a> {
 
     fn render_drawables(&mut self) {
         let drawables = self.world.get_drawables();
-        let num_textures = self.surfaces.len();
 
         for (rect, drawable) in drawables {
-			if let Some(texture_index) = drawable.texture && texture_index < self.surfaces.len() {
-                let surface = &self.surfaces[texture_index];
+            if let Some(texture_index) = drawable.texture
+                && let Some(surface) = self.surfaces.get(&texture_index)
+            {
+                if let Ok(mut texture) = self.texture_creator.create_texture_from_surface(surface) {
+                    if drawable.tint_texture {
+                        texture.set_color_mod(drawable.color.r, drawable.color.g, drawable.color.b);
+                    }
 
-				if let Ok(mut texture) = self.texture_creator.create_texture_from_surface(surface) {
-					if drawable.tint_texture {
-						texture.set_color_mod(drawable.color.r, drawable.color.g, drawable.color.b);
-					}
-
-					self.canvas
-						.copy(&texture, None, rect)
-						.expect("texture error");
-				}
+                    self.canvas
+                        .copy(&texture, None, rect)
+                        .expect("texture error");
+                }
             } else {
-				self.canvas.set_draw_color(drawable.color);
-				self.canvas.fill_rect(rect).expect("draw error");
-			}
+                self.canvas.set_draw_color(drawable.color);
+                self.canvas.fill_rect(rect).expect("draw error");
+            }
+
+            if self.should_show_debug {
+                self.canvas.set_draw_color(Color::MAGENTA);
+                self.canvas.draw_rect(rect).expect("draw error");
+            }
         }
     }
 
@@ -335,7 +379,11 @@ impl<'a> Game<'a> {
     }
 
     fn render_msg(&mut self, msg: &String, pos: FPoint) -> FRect {
-        let rendered_text = self.font.render(msg);
+        let font = self
+            .fonts
+            .get(&self.game_data.debug_font_id)
+            .expect("Invalid debug font id");
+        let rendered_text = font.render(msg);
         let surface = rendered_text
             .blended(Color::RGB(255, 255, 255))
             .expect("text render panic");
@@ -343,7 +391,8 @@ impl<'a> Game<'a> {
         let surface_width = surface.width() as f32;
         let surface_height = surface.height() as f32;
 
-        let texture = self.texture_creator
+        let texture = self
+            .texture_creator
             .create_texture_from_surface(surface)
             .expect("texture creation panic");
 

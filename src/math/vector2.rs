@@ -1,8 +1,9 @@
 use crate::math::VectorOps;
-use std::ops::{Add, Div, Mul, Sub};
 use sdl3::render::FPoint;
+use serde::{Deserialize, Serialize};
+use std::ops::{Add, Div, Mul, Sub};
 
-#[derive(PartialEq, Debug, Default, Clone, Copy)]
+#[derive(PartialEq, Debug, Default, Clone, Copy, Deserialize, Serialize)]
 pub struct Vector2<T> {
     pub x: T,
     pub y: T,
@@ -128,7 +129,7 @@ where
 
 impl<T> From<FPoint> for Vector2<T>
 where
-    T: From<f32>
+    T: From<f32>,
 {
     fn from(value: FPoint) -> Self {
         Self {
@@ -140,7 +141,7 @@ where
 
 impl<T> From<Vector2<T>> for FPoint
 where
-    T: Into<f32>
+    T: Into<f32>,
 {
     fn from(value: Vector2<T>) -> Self {
         Self {

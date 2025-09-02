@@ -1,0 +1,41 @@
+{
+	"fonts": [
+		{
+			"id": 1,
+			"path": "./assets/fonts/static/JetBrainsMono-Medium.ttf",
+			"size": 12
+		}
+	],
+	"textures": [
+		{
+			"id": 1,
+			"path": "./assets/textures/1.bmp"
+		},
+		{
+			"id": 2,
+			"path": "./assets/textures/2.bmp"
+		},
+		{
+			"id": 3,
+			"path": "./assets/textures/3.bmp"
+		},
+		{
+			"id": 4,
+			"path": "./assets/textures/player.bmp"
+		}
+	],
+	"levels": [
+		{
+			"id": 1,
+			"path": "./assets/levels/1.json"
+		}
+	],
+	"player": {
+		"texture_id": 4,
+		"size": {
+			"w": 64,
+			"h": 64
+		}
+	},
+	"debug_font_id": 1
+}
