@@ -1,14 +1,13 @@
 use crate::game_object::world::World;
-use crate::game_object::{ControllableBehaviour, Drawable, DvdBehaviour, GameObject, PhysicsVector};
+use crate::game_object::{Drawable, GameObject, PhysicsVector};
 use sdl3::event::Event;
 use sdl3::keyboard::{Keycode, Mod};
 use sdl3::pixels::{Color};
-use sdl3::render::{FPoint, FRect, Texture, TextureCreator, WindowCanvas};
+use sdl3::render::{FPoint, FRect, TextureCreator, WindowCanvas};
 use sdl3::surface::Surface;
 use sdl3::ttf::{Font, Sdl3TtfContext};
 use sdl3::{Sdl};
 use std::collections::{HashMap};
-use std::ffi::OsStr;
 use std::fs::read_dir;
 use std::path::Path;
 use std::thread::sleep;
@@ -17,6 +16,8 @@ use sdl3::libc::{rand, RAND_MAX};
 use sdl3::video::WindowContext;
 use crate::math::bounds::Bounds;
 use bitmask_enum::bitmask;
+use crate::game_object::behaviour::controllable::ControllableBehaviour;
+use crate::game_object::behaviour::dvd::DvdBehaviour;
 
 static FPS_LIMIT: u64 = 60;
 static MIN_FRAME_TIME: u64 = 1_000u64 / FPS_LIMIT;
@@ -45,7 +46,7 @@ pub struct Game<'a> {
     canvas: &'a mut WindowCanvas,
     ttf_context: &'a Sdl3TtfContext,
     font: Font<'a>,
-    textures: Vec<Texture<'a>>,
+	surfaces: Vec<Surface<'a>>,
     texture_names: Vec<String>,
     keymod: Mod,
     world: World,
@@ -73,7 +74,7 @@ impl<'a> Game<'a> {
         let font_path = Path::new("./assets/fonts/static/JetBrainsMono-Medium.ttf");
 
         // Load textures
-        let mut textures = Vec::new();
+        let mut surfaces = Vec::new();
         let mut texture_names = Vec::new();
 
         let dir = read_dir(Path::new("./assets/textures/")).expect("readdir error");
@@ -87,10 +88,8 @@ impl<'a> Game<'a> {
                     let name1 = name.to_str().expect("name error");
                     let surface = Surface::load_bmp(entry.path()).expect("image load error");
 
-                    if let Ok(texture) = texture_creator.create_texture_from_surface(surface) {
-                        textures.push(texture);
-                        texture_names.push(String::from(name1));
-                    }
+					surfaces.push(surface);
+					texture_names.push(String::from(name1));
                 }
             }
         }
@@ -100,7 +99,7 @@ impl<'a> Game<'a> {
             actions: Action::None,
             texture_creator,
             ttf_context,
-            textures,
+			surfaces,
             texture_names,
             keymod: Mod::NOMOD,
             world: World::new(width as f32, height as f32),
@@ -139,7 +138,7 @@ impl<'a> Game<'a> {
 
         // Load game objects, will later be loaded from level file modified by a save file
 
-        let num_textures = self.textures.len().clamp(0, 3);
+        let num_textures = self.surfaces.len().clamp(0, 3);
         let (width, height) = self.canvas.output_size().expect("output size error");
         let bounds = FRect {
             x: 0.0,
@@ -173,7 +172,8 @@ impl<'a> Game<'a> {
             game_object.drawable = Some(Drawable {
                 z: i as i32,
                 color: Color::RGB(25 * i as u8, 0, 255 - i as u8 * 25),
-                texture: texture_index,
+                texture: Some(texture_index),
+				tint_texture: false,
             });
             game_object.behaviours.push(Box::new(DvdBehaviour::new(bounds, speed)));
 
@@ -188,9 +188,10 @@ impl<'a> Game<'a> {
             h: 60.0,
         };
         game_object.drawable = Some(Drawable {
-            z: 100 as i32,
+            z: 100,
             color: Color::MAGENTA,
-            texture: 3,
+            texture: Some(3),
+			tint_texture: true,
         });
         game_object.behaviours.push(Box::new(ControllableBehaviour::new(bounds, 50.0, 200.0)));
 
@@ -262,19 +263,25 @@ impl<'a> Game<'a> {
 
     fn render_drawables(&mut self) {
         let drawables = self.world.get_drawables();
-        let num_textures = self.textures.len();
+        let num_textures = self.surfaces.len();
 
         for (rect, drawable) in drawables {
-            if drawable.texture < num_textures {
-                let texture = &self.textures[drawable.texture];
+			if let Some(texture_index) = drawable.texture && texture_index < self.surfaces.len() {
+                let surface = &self.surfaces[texture_index];
 
-                self.canvas
-                    .copy(texture, None, rect)
-                    .expect("texture error");
+				if let Ok(mut texture) = self.texture_creator.create_texture_from_surface(surface) {
+					if drawable.tint_texture {
+						texture.set_color_mod(drawable.color.r, drawable.color.g, drawable.color.b);
+					}
+
+					self.canvas
+						.copy(&texture, None, rect)
+						.expect("texture error");
+				}
             } else {
-                self.canvas.set_draw_color(drawable.color);
-                self.canvas.fill_rect(rect).expect("draw error");
-            }
+				self.canvas.set_draw_color(drawable.color);
+				self.canvas.fill_rect(rect).expect("draw error");
+			}
         }
     }
 
