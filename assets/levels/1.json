@@ -32,6 +32,7 @@
 					"type": "Dvd",
 					"use_world_bounds": true,
 					"speed": {
+						"type": "Fixed",
 						"x": 20,
 						"y": 35
 					}
