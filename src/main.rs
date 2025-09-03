@@ -3,14 +3,23 @@ mod game;
 mod math;
 mod game_data;
 
+use std::ffi::c_uint;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
+use std::time::SystemTime;
+use sdl3::libc::srand;
 use sdl3::ttf;
 use crate::game::Game;
 use crate::game_data::GameData;
 
 fn main() {
+	unsafe {
+		let now = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("Could not get current time");
+
+		srand(now.as_secs() as c_uint);
+	}
+
 	let path = Path::new("./assets/assets.json");
 	let file = File::open(path).expect("Could not open assets.json");
 	let reader = BufReader::new(file);

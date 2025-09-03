@@ -170,72 +170,7 @@ impl<'a> Game<'a> {
 	}
 
     fn init(&mut self) {
-        // Load game objects, will later be loaded from level file modified by a save file
-
-		/*
-        let num_textures = self.surfaces.len().clamp(0, 3);
-        let (width, height) = self.canvas.output_size().expect("output size error");
-        let bounds = FRect {
-            x: 0.0,
-            y: 0.0,
-            w: width as f32,
-            h: height as f32,
-        };
-
-        for i in 0..10 {
-            let pos = i as f32 * 30.0;
-            let mut texture_index = 0;
-
-            let mut speed = PhysicsVector::default();
-
-            unsafe {
-                speed.x = rand() as f32 / RAND_MAX as f32 * 200.0;
-                speed.y = rand() as f32 / RAND_MAX as f32 * 200.0;
-            }
-
-            if num_textures > 0 {
-                texture_index = i % num_textures;
-            }
-
-            let mut game_object = GameObject::new(i as i32);
-            game_object.bounds = FRect {
-                x: pos,
-                y: pos,
-                w: 60.0,
-                h: 60.0,
-            };
-            game_object.drawable = Some(Drawable {
-                z: i as i32,
-                color: Color::RGB(25 * i as u8, 0, 255 - i as u8 * 25),
-                texture: Some(texture_index),
-                tint_texture: false,
-            });
-            game_object
-                .behaviours
-                .push(Box::new(DvdBehaviour::new(bounds, speed)));
-
-            self.world.add_game_object(game_object);
-        }
-
-        let mut game_object = GameObject::new(100);
-        game_object.bounds = FRect {
-            x: 0.0,
-            y: 0.0,
-            w: 60.0,
-            h: 60.0,
-        };
-        game_object.drawable = Some(Drawable {
-            z: 100,
-            color: Color::MAGENTA,
-            texture: Some(self.texture_names["player.bmp"]),
-            tint_texture: true,
-        });
-        game_object
-            .behaviours
-            .push(Box::new(ControllableBehaviour::new(bounds, 50.0, 200.0)));
-
-        self.world.add_game_object(game_object);
-		*/
+		self.world.load_level(&self.level_data.get(0).expect("no level data available"));
     }
 
     pub fn run(&mut self) {

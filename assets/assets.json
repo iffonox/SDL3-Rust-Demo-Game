@@ -30,12 +30,5 @@
 			"path": "./assets/levels/1.json"
 		}
 	],
-	"player": {
-		"texture_id": 4,
-		"size": {
-			"w": 64,
-			"h": 64
-		}
-	},
 	"debug_font_id": 1
 }

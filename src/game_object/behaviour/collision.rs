@@ -15,27 +15,20 @@ impl CollisionBehaviour {
 }
 
 impl Behaviour for CollisionBehaviour {
-	fn tick(&mut self, params: BehaviourParameter, delta_t: u64) -> BehaviourResult {
+	fn tick(&mut self, params: BehaviourParameter, _: u64) -> BehaviourResult {
 		let mut collisions: Vec<(i32, FRect)> = Vec::new();
-		let rect_count = params.other_bounds.len();
 
-		for i in 0..rect_count {
-			let (id1, rect1) = params.other_bounds[i];
+		self.bounds = params.bounds;
 
-			if !rect1.intersects(self.bounds) {
+		for i in 0..params.other_bounds.len() {
+			let (id, rect) = params.other_bounds[i];
+
+			if id == params.id {
 				continue
 			}
 
-			for j in 0..i {
-				let (id2, rect2) = params.other_bounds[i];
-
-				if id1 == id2 {
-					continue
-				}
-
-				if rect1.intersects(rect2) {
-					collisions.push((id1, rect1))
-				}
+			if rect.intersects(self.bounds) {
+				collisions.push((id, rect))
 			}
 		}
 

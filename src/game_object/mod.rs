@@ -81,23 +81,20 @@ impl GameObject {
         }
     }
 
-    pub fn tick(&mut self, delta_t: u64, actions: Action, other_bounds: &Vec<(i32, FRect)>) -> BehaviourResult {
+    pub fn tick(&mut self, delta_t: u64, actions: Action, other_bounds: &Vec<(i32, FRect)>) {
         let behaviours = &mut self.behaviours;
         let mut bounds = self.bounds;
 
         for i in 0..behaviours.len() {
             let behaviour = behaviours[i].as_mut();
 
-            let result = behaviour.tick(BehaviourParameter { bounds, actions, other_bounds }, delta_t);
+            let result = behaviour.tick(BehaviourParameter { id: self.id, bounds, actions, other_bounds }, delta_t);
 
             if let Some(b) = result.bounds {
                 bounds = b
             }
         }
 
-		BehaviourResult {
-			bounds: Some(bounds),
-			collisions: None
-		}
+		self.bounds = bounds;
     }
 }

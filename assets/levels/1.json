@@ -4,6 +4,13 @@
 		"x": 0,
 		"y": 0
 	},
+	"player": {
+		"texture_id": 4,
+		"size": {
+			"w": 64,
+			"h": 64
+		}
+	},
 	"bounds": {
 		"x": 0,
 		"y": 0,
@@ -32,10 +39,93 @@
 					"type": "Dvd",
 					"use_world_bounds": true,
 					"speed": {
-						"type": "Fixed",
-						"x": 20,
-						"y": 35
+						"type": "Random",
+						"min": {
+							"x": 20,
+							"y": 20
+						},
+						"max": {
+							"x": 200,
+							"y": 200
+						}
 					}
+				},
+				{
+					"type": "Collision"
+				}
+			]
+		},
+		{
+			"id": 2,
+			"texture_id": 2,
+			"tint_texture": false,
+			"color": {
+				"r": 0,
+				"g": 0,
+				"b": 0,
+				"a": 0
+			},
+			"bounds": {
+				"x": 10,
+				"y": 10,
+				"w": 64,
+				"h": 64
+			},
+			"behaviours": [
+				{
+					"type": "Dvd",
+					"use_world_bounds": true,
+					"speed": {
+						"type": "Random",
+						"min": {
+							"x": 20,
+							"y": 20
+						},
+						"max": {
+							"x": 200,
+							"y": 200
+						}
+					}
+				},
+				{
+					"type": "Collision"
+				}
+			]
+		},
+		{
+			"id": 3,
+			"texture_id": 3,
+			"tint_texture": false,
+			"color": {
+				"r": 0,
+				"g": 0,
+				"b": 0,
+				"a": 0
+			},
+			"bounds": {
+				"x": 10,
+				"y": 10,
+				"w": 64,
+				"h": 64
+			},
+			"behaviours": [
+				{
+					"type": "Dvd",
+					"use_world_bounds": true,
+					"speed": {
+						"type": "Random",
+						"min": {
+							"x": 20,
+							"y": 20
+						},
+						"max": {
+							"x": 200,
+							"y": 200
+						}
+					}
+				},
+				{
+					"type": "Collision"
 				}
 			]
 		}

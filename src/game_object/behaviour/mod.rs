@@ -1,12 +1,14 @@
 pub mod dvd;
 pub mod controllable;
-mod collision;
+pub mod collision;
 
 use sdl3::render::FRect;
 use crate::game::Action;
+use crate::game_data::AssetId;
 
 #[derive(Clone, Copy)]
 pub struct BehaviourParameter<'a> {
+	pub id: AssetId,
 	pub bounds: FRect,
 	pub actions: Action,
 	pub other_bounds: &'a Vec<(i32, FRect)>,
