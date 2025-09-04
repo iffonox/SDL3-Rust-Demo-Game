@@ -1,4 +1,4 @@
-use crate::game_data::{AssetId, FontDefinition, GameData, LevelData, LevelDefinition, TextureDefinition};
+use crate::game_data::{Action, AssetId, FontDefinition, GameData, LevelData, LevelDefinition, TextureDefinition};
 use crate::game_object::world::World;
 use crate::math::bounds::Bounds;
 use bitmask_enum::bitmask;
@@ -16,25 +16,10 @@ use std::io::BufReader;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
+use sdl3::timer::performance_frequency;
 
 static FPS_LIMIT: u64 = 60;
 static MIN_FRAME_TIME: u64 = 1_000u64 / FPS_LIMIT;
-
-#[bitmask(u32)]
-pub enum Action {
-    None = 0,
-    Quit = 1,
-    Debug = 2,
-    FpsLimit = 4,
-    MoveLeft = 8,
-    MoveRight = 16,
-    MoveUp = 32,
-    MoveDown = 64,
-    Duck = 128,
-    Jump = 256,
-    Sprint = 512,
-    Attack = 1024,
-}
 
 pub struct Game<'a> {
     keymap: HashMap<Keycode, Action>,
@@ -45,6 +30,7 @@ pub struct Game<'a> {
     canvas: &'a mut WindowCanvas,
     fonts: HashMap<AssetId, Font<'a>>,
     surfaces: HashMap<AssetId, Surface<'a>>,
+	performance_frequency: f64,
     keymod: Mod,
     world: World,
     bg_color: Color,
@@ -90,6 +76,7 @@ impl<'a> Game<'a> {
             sdl_context,
             canvas,
             fonts,
+			performance_frequency: performance_frequency() as f64,
             bg_color: Color::RGB(255, 255, 255),
             last_tick: 0,
             frame_time: 0,
@@ -170,6 +157,8 @@ impl<'a> Game<'a> {
 	}
 
     fn init(&mut self) {
+		dbg!(performance_frequency());
+
 		self.world.load_level(&self.level_data.get(0).expect("no level data available"));
     }
 
@@ -265,7 +254,7 @@ impl<'a> Game<'a> {
     }
 
     fn tick(&mut self) {
-        let now = sdl3::timer::ticks();
+        let now = sdl3::timer::performance_counter();
 
         if self.last_tick == 0 {
             self.last_tick = now;
@@ -274,8 +263,9 @@ impl<'a> Game<'a> {
         }
 
         let delta_t = now - self.last_tick;
+		let delta_t_sec = delta_t as f64 / self.performance_frequency;
 
-        self.world.tick(delta_t, self.actions);
+        self.world.tick(delta_t_sec, self.actions);
 
         self.canvas.set_draw_color(self.bg_color);
         self.canvas.clear();
@@ -283,7 +273,7 @@ impl<'a> Game<'a> {
         self.render_drawables();
 
         if self.should_show_debug {
-            self.render_debug_msg(delta_t);
+            self.render_debug_msg(delta_t_sec);
         }
 
         self.canvas.present();
@@ -292,11 +282,11 @@ impl<'a> Game<'a> {
         self.keymod = Mod::NOMOD;
         self.frame_number += 1;
         self.fps_frame_count += 1;
-        self.frame_time = sdl3::timer::ticks() - now;
+        self.frame_time = ((sdl3::timer::performance_counter() - now) as f64 / self.performance_frequency * 1_000.0) as u64;
 
-        let fps_time = now - self.fps_last_tick;
-        if fps_time > 1000 {
-            self.fps = self.fps_frame_count as f32 / fps_time as f32 * 1000.0;
+        let fps_time = (now - self.fps_last_tick) as f64 / self.performance_frequency;
+        if fps_time > 1.0 {
+            self.fps = self.fps_frame_count as f32 / fps_time as f32;
 
             self.fps_last_tick = now;
             self.fps_frame_count = 0;
@@ -307,7 +297,7 @@ impl<'a> Game<'a> {
         }
 
         if self.frame_time < MIN_FRAME_TIME {
-            let wait_time = (MIN_FRAME_TIME - self.frame_time) * 1000_000;
+            let wait_time = (MIN_FRAME_TIME - self.frame_time) * 1_000_000;
 
             sleep(Duration::new(0, wait_time as u32));
         }
@@ -344,20 +334,22 @@ impl<'a> Game<'a> {
         bg_rect
     }
 
-    fn render_debug_msg(&mut self, delta_t: u64) {
-        let dt_text = format!("delta_t: {delta_t}ms");
+    fn render_debug_msg(&mut self, delta_t: f64) {
+		let sec = delta_t * 1000.0;
+
+        let dt_text = format!("delta_t: {sec:.2}ms");
         let dt_rect = self.render_msg(&dt_text, FPoint::new(0.0, 0.0));
 
         let fn_text = format!("frame_count: {}", self.frame_number);
         let fn_rect = self.render_msg(&fn_text, FPoint::new(dt_rect.x, dt_rect.bottom()));
 
-        let ft_text = format!("frame_time: {}ms", self.frame_time);
+        let ft_text = format!("frame_time: {0:.2}ms", self.frame_time);
         let ft_rect = self.render_msg(&ft_text, FPoint::new(fn_rect.x, fn_rect.bottom()));
 
         let fw_text = format!("fps_limit: {}", self.should_wait_after_frame);
         let fw_rect = self.render_msg(&fw_text, FPoint::new(ft_rect.x, ft_rect.bottom()));
 
-        let fps_text = format!("fps: {}", self.fps);
+        let fps_text = format!("fps: {0:.2}", self.fps);
         self.render_msg(&fps_text, FPoint::new(fw_rect.x, fw_rect.bottom()));
     }
 }

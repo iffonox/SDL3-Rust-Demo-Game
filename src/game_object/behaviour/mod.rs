@@ -3,8 +3,7 @@ pub mod controllable;
 pub mod collision;
 
 use sdl3::render::FRect;
-use crate::game::Action;
-use crate::game_data::AssetId;
+use crate::game_data::{Action, AssetId};
 
 #[derive(Clone, Copy)]
 pub struct BehaviourParameter<'a> {
@@ -20,5 +19,5 @@ pub struct BehaviourResult {
 }
 
 pub trait Behaviour {
-	fn tick(&mut self, params: BehaviourParameter, delta_t: u64) -> BehaviourResult;
+	fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult;
 }

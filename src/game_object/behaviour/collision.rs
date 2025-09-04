@@ -15,7 +15,7 @@ impl CollisionBehaviour {
 }
 
 impl Behaviour for CollisionBehaviour {
-	fn tick(&mut self, params: BehaviourParameter, _: u64) -> BehaviourResult {
+	fn tick(&mut self, params: BehaviourParameter, _: f64) -> BehaviourResult {
 		let mut collisions: Vec<(i32, FRect)> = Vec::new();
 
 		self.bounds = params.bounds;

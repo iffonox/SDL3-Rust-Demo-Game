@@ -3,12 +3,15 @@ name = "demo-game"
 version = "0.1.0"
 edition = "2024"
 description = "A simple demo game to get into SDL3 and learn more about Rust"
-license = "MIT"
+repository = "https://github.com/iffonox/SDL3-Rust-Demo-Game"
+license-file = "LICENCE"
+include = ["assets/"]
+publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sdl3 = { version = "0.14.41", features = ["ttf"] }
+sdl3 = { version = "0.14.41", features = ["ttf", "use-pkg-config", "use-vcpkg"] }
 serde_json = "1.0"
 bitmask-enum = "2.2.5"
 serde = { version = "1.0.219", features = ["derive"] }

@@ -1,6 +1,5 @@
-use crate::game::Action;
 use crate::game_data::BehaviourType::Collision;
-use crate::game_data::{BehaviourType, LevelData};
+use crate::game_data::{Action, BehaviourType, LevelData};
 use crate::game_object::behaviour::Behaviour;
 use crate::game_object::behaviour::collision::CollisionBehaviour;
 use crate::game_object::behaviour::controllable::ControllableBehaviour;
@@ -138,7 +137,7 @@ impl World {
             .sort_by_key(|b| b.drawable.as_ref().map(|d| d.z).unwrap_or_default());
     }
 
-    pub fn tick(&mut self, delta_t: u64, actions: Action) {
+    pub fn tick(&mut self, delta_t: f64, actions: Action) {
         let rects: Vec<(i32, FRect)> = self.game_objects.iter().map(|o| (o.id, o.bounds)).collect();
 
         for i in 0..self.game_objects.len() {

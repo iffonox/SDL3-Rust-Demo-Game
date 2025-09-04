@@ -1,5 +1,5 @@
 use sdl3::render::FRect;
-use crate::game::Action;
+use crate::game_data::Action;
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::game_object::PhysicsVector;
 use crate::math::bounds::Bounds;
@@ -21,8 +21,8 @@ impl ControllableBehaviour {
 }
 
 impl Behaviour for ControllableBehaviour {
-	fn tick(&mut self, params: BehaviourParameter, delta_t: u64) -> BehaviourResult {
-		let sec = delta_t as f32 / 1000.0;
+	fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult {
+		let sec = delta_t as f32;
 		let actions = params.actions;
 		let center = params.bounds.center();
 		let mut position = PhysicsVector::from(center);

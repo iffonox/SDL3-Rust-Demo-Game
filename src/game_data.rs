@@ -1,3 +1,4 @@
+use bitmask_enum::bitmask;
 use crate::game_object::PhysicsVector;
 use crate::math::vector2::Vector2;
 use sdl3::libc::{RAND_MAX, rand};
@@ -176,4 +177,20 @@ pub struct LevelData {
     pub bounds: Option<AssetBounds>,
     pub player: Player,
     pub objects: Vec<LevelObject>,
+}
+
+#[bitmask(u32)]
+pub enum Action {
+	None = 0,
+	Quit = 1,
+	Debug = 2,
+	FpsLimit = 4,
+	MoveLeft = 8,
+	MoveRight = 16,
+	MoveUp = 32,
+	MoveDown = 64,
+	Duck = 128,
+	Jump = 256,
+	Sprint = 512,
+	Attack = 1024,
 }
