@@ -1,5 +1,7 @@
-use crate::game_data::BehaviourType::Collision;
-use crate::game_data::{Action, BehaviourType, LevelData};
+use crate::serialization::Action;
+use crate::serialization::behaviour::BehaviourType;
+use crate::serialization::behaviour::BehaviourType::Collision;
+use crate::serialization::level::LevelData;
 use crate::game_object::behaviour::Behaviour;
 use crate::game_object::behaviour::collision::CollisionBehaviour;
 use crate::game_object::behaviour::controllable::ControllableBehaviour;
@@ -72,9 +74,9 @@ impl World {
             50.0,
             200.0,
         )));
-		player.behaviours.push(Box::new(CollisionBehaviour::new(
-			player.bounds,
-		)));
+        player
+            .behaviours
+            .push(Box::new(CollisionBehaviour::new(player.bounds)));
 
         self.add_game_object(player);
 
@@ -100,18 +102,20 @@ impl World {
             for j in 0..behaviours.len() {
                 let behaviour_data = &behaviours[j];
 
-                if let Some(behaviour) = Self::build_behaviour(behaviour_data, game_object.bounds, self.bounds) {
+                if let Some(behaviour) =
+                    Self::build_behaviour(behaviour_data, game_object.bounds, self.bounds)
+                {
                     game_object.behaviours.push(behaviour);
                 }
             }
 
-			self.add_game_object(game_object);
+            self.add_game_object(game_object);
         }
     }
 
     fn build_behaviour(
         behaviour_data: &BehaviourType,
-		object_bounds: FRect,
+        object_bounds: FRect,
         world_bounds: FRect,
     ) -> Option<Box<dyn Behaviour>> {
         let behaviour: Option<Box<dyn Behaviour>> = match behaviour_data {

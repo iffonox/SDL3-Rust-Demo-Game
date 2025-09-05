@@ -1,5 +1,5 @@
-pub mod vector2;
 pub mod bounds;
+pub mod vector2;
 
 trait VectorOps {
     type Output;

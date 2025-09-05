@@ -1,13 +1,17 @@
-use crate::game_data::{Action, AssetId, FontDefinition, GameData, LevelData, LevelDefinition, TextureDefinition};
+use crate::serialization::font::FontDefinition;
+use crate::serialization::game::{GameData, LevelDefinition};
+use crate::serialization::level::LevelData;
+use crate::serialization::texture::TextureDefinition;
+use crate::serialization::{Action, AssetId};
 use crate::game_object::world::World;
 use crate::math::bounds::Bounds;
-use bitmask_enum::bitmask;
 use sdl3::Sdl;
 use sdl3::event::Event;
 use sdl3::keyboard::{Keycode, Mod};
 use sdl3::pixels::Color;
 use sdl3::render::{FPoint, FRect, TextureCreator, WindowCanvas};
 use sdl3::surface::Surface;
+use sdl3::timer::performance_frequency;
 use sdl3::ttf::{Font, Sdl3TtfContext};
 use sdl3::video::WindowContext;
 use std::collections::HashMap;
@@ -16,7 +20,6 @@ use std::io::BufReader;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
-use sdl3::timer::performance_frequency;
 
 static FPS_LIMIT: u64 = 60;
 static MIN_FRAME_TIME: u64 = 1_000u64 / FPS_LIMIT;
@@ -30,11 +33,11 @@ pub struct Game<'a> {
     canvas: &'a mut WindowCanvas,
     fonts: HashMap<AssetId, Font<'a>>,
     surfaces: HashMap<AssetId, Surface<'a>>,
-	performance_frequency: f64,
+    performance_frequency: f64,
     keymod: Mod,
     world: World,
     bg_color: Color,
-	level_data: Vec<LevelData>,
+    level_data: Vec<LevelData>,
     last_tick: u64,
     frame_time: u64,
     frame_number: u64,
@@ -56,19 +59,19 @@ impl<'a> Game<'a> {
         texture_creator: &'a TextureCreator<WindowContext>,
         ttf_context: &'a Sdl3TtfContext,
     ) -> Self {
-		let fonts = Self::load_fonts(&game_data.fonts, ttf_context);
+        let fonts = Self::load_fonts(&game_data.fonts, ttf_context);
 
-		let surfaces = Self::load_surfaces(&game_data.textures);
+        let surfaces = Self::load_surfaces(&game_data.textures);
 
-		let keymap = Self::load_keymap();
+        let keymap = Self::load_keymap();
 
-		let level_data = Self::load_levels(&game_data.levels);
+        let level_data = Self::load_levels(&game_data.levels);
 
         Self {
             keymap,
             actions: Action::None,
             game_data,
-			level_data,
+            level_data,
             texture_creator,
             surfaces,
             keymod: Mod::NOMOD,
@@ -76,7 +79,7 @@ impl<'a> Game<'a> {
             sdl_context,
             canvas,
             fonts,
-			performance_frequency: performance_frequency() as f64,
+            performance_frequency: performance_frequency() as f64,
             bg_color: Color::RGB(255, 255, 255),
             last_tick: 0,
             frame_time: 0,
@@ -90,40 +93,45 @@ impl<'a> Game<'a> {
         }
     }
 
-	fn load_surfaces(texture_definitions: &Vec<TextureDefinition>) -> HashMap<AssetId, Surface<'a>> {
-		let mut surfaces = HashMap::new();
+    fn load_surfaces(
+        texture_definitions: &Vec<TextureDefinition>,
+    ) -> HashMap<AssetId, Surface<'a>> {
+        let mut surfaces = HashMap::new();
 
-		for i in 0..texture_definitions.len() {
-			let texture_definition = &texture_definitions[i];
-			let path = Path::new(&texture_definition.path);
-			let surface = Surface::load_bmp(path).expect("image load error");
+        for i in 0..texture_definitions.len() {
+            let texture_definition = &texture_definitions[i];
+            let path = Path::new(&texture_definition.path);
+            let surface = Surface::load_bmp(path).expect("image load error");
 
-			surfaces.insert(texture_definition.id, surface);
-		}
+            surfaces.insert(texture_definition.id, surface);
+        }
 
-		surfaces
-	}
+        surfaces
+    }
 
-	fn load_fonts(font_definitions: &Vec<FontDefinition>, ttf_context: &Sdl3TtfContext) -> HashMap<AssetId, Font<'a>> {
-		let mut fonts = HashMap::new();
+    fn load_fonts(
+        font_definitions: &Vec<FontDefinition>,
+        ttf_context: &Sdl3TtfContext,
+    ) -> HashMap<AssetId, Font<'a>> {
+        let mut fonts = HashMap::new();
 
-		for i in 0..font_definitions.len() {
-			let font_definition = &font_definitions[i];
-			let path = Path::new(&font_definition.path);
-			let surface = ttf_context
-				.load_font(path, font_definition.size)
-				.expect("Font loading error");
+        for i in 0..font_definitions.len() {
+            let font_definition = &font_definitions[i];
+            let path = Path::new(&font_definition.path);
+            let surface = ttf_context
+                .load_font(path, font_definition.size)
+                .expect("Font loading error");
 
-			fonts.insert(font_definition.id, surface);
-		}
+            fonts.insert(font_definition.id, surface);
+        }
 
-		fonts
-	}
+        fonts
+    }
 
-	fn load_keymap() -> HashMap<Keycode, Action> {
-		let mut keymap = HashMap::new();
+    fn load_keymap() -> HashMap<Keycode, Action> {
+        let mut keymap = HashMap::new();
 
-		// Load keymap, will later be loaded from a config file
+        // Load keymap, will later be loaded from a config file
 
         keymap.insert(Keycode::Escape, Action::Quit);
         keymap.insert(Keycode::F2, Action::Debug);
@@ -137,29 +145,30 @@ impl<'a> Game<'a> {
         keymap.insert(Keycode::LCtrl, Action::Duck);
         keymap.insert(Keycode::RCtrl, Action::Attack);
 
-		keymap
+        keymap
     }
 
-	fn load_levels(level_definitions: &Vec<LevelDefinition>) -> Vec<LevelData> {
-		let mut levels = Vec::new();
+    fn load_levels(level_definitions: &Vec<LevelDefinition>) -> Vec<LevelData> {
+        let mut levels = Vec::new();
 
-		for i in 0..level_definitions.len() {
-			let level_definition = &level_definitions[i];
-			let path = Path::new(&level_definition.path);
-			let file = File::open(path).expect("Could not open level json");
-			let reader = BufReader::new(file);
-			let level = serde_json::from_reader(reader).expect("Could not parse level json");
+        for i in 0..level_definitions.len() {
+            let level_definition = &level_definitions[i];
+            let path = Path::new(&level_definition.path);
+            let file = File::open(path).expect("Could not open level json");
+            let reader = BufReader::new(file);
+            let level = serde_json::from_reader(reader).expect("Could not parse level json");
 
-			levels.push(level)
-		}
+            levels.push(level)
+        }
 
-		levels
-	}
+        levels
+    }
 
     fn init(&mut self) {
-		dbg!(performance_frequency());
+        dbg!(performance_frequency());
 
-		self.world.load_level(&self.level_data.get(0).expect("no level data available"));
+        self.world
+            .load_level(&self.level_data.get(0).expect("no level data available"));
     }
 
     pub fn run(&mut self) {
@@ -263,7 +272,7 @@ impl<'a> Game<'a> {
         }
 
         let delta_t = now - self.last_tick;
-		let delta_t_sec = delta_t as f64 / self.performance_frequency;
+        let delta_t_sec = delta_t as f64 / self.performance_frequency;
 
         self.world.tick(delta_t_sec, self.actions);
 
@@ -282,7 +291,9 @@ impl<'a> Game<'a> {
         self.keymod = Mod::NOMOD;
         self.frame_number += 1;
         self.fps_frame_count += 1;
-        self.frame_time = ((sdl3::timer::performance_counter() - now) as f64 / self.performance_frequency * 1_000.0) as u64;
+        self.frame_time = ((sdl3::timer::performance_counter() - now) as f64
+            / self.performance_frequency
+            * 1_000.0) as u64;
 
         let fps_time = (now - self.fps_last_tick) as f64 / self.performance_frequency;
         if fps_time > 1.0 {
@@ -335,7 +346,7 @@ impl<'a> Game<'a> {
     }
 
     fn render_debug_msg(&mut self, delta_t: f64) {
-		let sec = delta_t * 1000.0;
+        let sec = delta_t * 1000.0;
 
         let dt_text = format!("delta_t: {sec:.2}ms");
         let dt_rect = self.render_msg(&dt_text, FPoint::new(0.0, 0.0));

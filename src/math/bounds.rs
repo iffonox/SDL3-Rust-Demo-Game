@@ -19,8 +19,10 @@ pub trait Bounds {
     }
 
     fn intersects<T: Bounds>(&self, other: T) -> bool {
-		self.left() <= other.right() && self.right() >= other.left() &&
-			self.top() <= other.bottom() && self.bottom() >= other.top()
+        self.left() <= other.right()
+            && self.right() >= other.left()
+            && self.top() <= other.bottom()
+            && self.bottom() >= other.top()
     }
 }
 
@@ -59,28 +61,38 @@ impl Bounds for FRect {
 
     fn center(&self) -> FPoint {
         FPoint {
-            x: (self.left() + self.right())/2.0,
-            y: (self.top() + self.bottom())/2.0,
+            x: (self.left() + self.right()) / 2.0,
+            y: (self.top() + self.bottom()) / 2.0,
         }
     }
 
     fn set_center<T: Into<FPoint>>(&mut self, position: T) {
         let point = position.into();
 
-        self.x = point.x - self.w/2.0;
-        self.y = point.y - self.h/2.0;
+        self.x = point.x - self.w / 2.0;
+        self.y = point.y - self.h / 2.0;
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use sdl3::render::{FPoint, FRect};
     use crate::math::bounds::Bounds;
+    use sdl3::render::{FPoint, FRect};
 
     #[test]
     fn test_bounds() {
-        let b1 = FRect { x: 0.0, y: 0.0, w: 10.0, h: 10.0 };
-        let b2 = FRect { x: 10.0, y: 10.0, w: -10.0, h: -10.0 };
+        let b1 = FRect {
+            x: 0.0,
+            y: 0.0,
+            w: 10.0,
+            h: 10.0,
+        };
+        let b2 = FRect {
+            x: 10.0,
+            y: 10.0,
+            w: -10.0,
+            h: -10.0,
+        };
 
         assert_eq!(b1.top(), 0.0);
         assert_eq!(b1.left(), 0.0);
@@ -95,7 +107,12 @@ mod tests {
 
     #[test]
     fn test_inside() {
-        let bounds = FRect { x: 0.0, y: 0.0, w: 10.0, h: 10.0 };
+        let bounds = FRect {
+            x: 0.0,
+            y: 0.0,
+            w: 10.0,
+            h: 10.0,
+        };
         let p1 = FPoint { x: 0.0, y: 0.0 };
         let p2 = FPoint { x: 10.0, y: 10.0 };
         let p3 = FPoint { x: 5.0, y: 5.0 };
@@ -113,7 +130,12 @@ mod tests {
 
     #[test]
     fn test_inside_inverse() {
-        let bounds = FRect { x: 10.0, y: 10.0, w: -10.0, h: -10.0 };
+        let bounds = FRect {
+            x: 10.0,
+            y: 10.0,
+            w: -10.0,
+            h: -10.0,
+        };
         let p1 = FPoint { x: 0.0, y: 0.0 };
         let p2 = FPoint { x: 10.0, y: 10.0 };
         let p3 = FPoint { x: 5.0, y: 5.0 };
@@ -131,22 +153,52 @@ mod tests {
 
     #[test]
     fn test_intersects() {
-        let canvas = FRect { x: 0.0, y: 0.0, w: 10.0, h: 10.0 };
+        let canvas = FRect {
+            x: 0.0,
+            y: 0.0,
+            w: 10.0,
+            h: 10.0,
+        };
 
         // r1 is completely inside of canvas
-        let r1 = FRect { x: 0.0, y: 0.0, w: 1.0, h: 1.0 };
+        let r1 = FRect {
+            x: 0.0,
+            y: 0.0,
+            w: 1.0,
+            h: 1.0,
+        };
 
         // a point of r2 is inside of canvas
-        let r2 = FRect { x: -1.0, y: -1.0, w: 1.0, h: 1.0 };
+        let r2 = FRect {
+            x: -1.0,
+            y: -1.0,
+            w: 1.0,
+            h: 1.0,
+        };
 
         // no point of r4 is inside canvas
-        let r3 = FRect { x: 11.0, y: 0.0, w: 1.0, h: 1.0 };
+        let r3 = FRect {
+            x: 11.0,
+            y: 0.0,
+            w: 1.0,
+            h: 1.0,
+        };
 
         // r4 and canvas form a cross
-        let r4 = FRect { x: 4.0, y: -1.0, w: 1.0, h: 20.0 };
+        let r4 = FRect {
+            x: 4.0,
+            y: -1.0,
+            w: 1.0,
+            h: 20.0,
+        };
 
         // r5.x is between canvas.left and canvas.right, but there is no overlap
-        let r5 = FRect { x: 4.0, y: 100.0, w: 1.0, h: 1.0 };
+        let r5 = FRect {
+            x: 4.0,
+            y: 100.0,
+            w: 1.0,
+            h: 1.0,
+        };
 
         assert!(canvas.intersects(r1));
         assert!(canvas.intersects(r2));

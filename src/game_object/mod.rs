@@ -1,14 +1,14 @@
-pub mod world;
 pub mod behaviour;
+pub mod world;
 
 extern crate sdl3;
 
+use crate::serialization::{Action, AssetId};
+use crate::game_object::behaviour::{Behaviour, BehaviourParameter};
 use crate::math::bounds::Bounds;
 use crate::math::vector2::Vector2;
 use sdl3::pixels::Color;
-use sdl3::render::{FRect};
-use crate::game_data::{Action, AssetId};
-use crate::game_object::behaviour::{Behaviour, BehaviourParameter};
+use sdl3::render::FRect;
 
 pub type PhysicsVector = Vector2<f32>;
 
@@ -16,18 +16,18 @@ pub struct Drawable {
     pub z: i32,
     pub color: Color,
     pub texture: Option<AssetId>, // index of the texture
-	pub tint_texture: bool, // if the texture should be tinted by the color
+    pub tint_texture: bool,       // if the texture should be tinted by the color
 }
 
 impl Default for Drawable {
-	fn default() -> Self {
-		Self {
-			z: i32::default(),
-			color: Color::WHITE,
-			texture: None,
-			tint_texture: bool::default()
-		}
-	}
+    fn default() -> Self {
+        Self {
+            z: i32::default(),
+            color: Color::WHITE,
+            texture: None,
+            tint_texture: bool::default(),
+        }
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -48,9 +48,7 @@ pub struct PhysicsBody {
 impl PhysicsBody {
     pub fn apply_force(&mut self, game_object: &GameObject, force: &PhysicsVector) {}
 
-    pub fn apply(&self, game_object: &mut GameObject, delta_t: u64) {
-
-	}
+    pub fn apply(&self, game_object: &mut GameObject, delta_t: u64) {}
 }
 
 pub struct ActionHandler {}
@@ -89,13 +87,21 @@ impl GameObject {
         for i in 0..behaviours.len() {
             let behaviour = behaviours[i].as_mut();
 
-            let result = behaviour.tick(BehaviourParameter { id: self.id, bounds, actions, other_bounds }, delta_t);
+            let result = behaviour.tick(
+                BehaviourParameter {
+                    id: self.id,
+                    bounds,
+                    actions,
+                    other_bounds,
+                },
+                delta_t,
+            );
 
             if let Some(b) = result.bounds {
                 bounds = b
             }
         }
 
-		self.bounds = bounds;
+        self.bounds = bounds;
     }
 }
