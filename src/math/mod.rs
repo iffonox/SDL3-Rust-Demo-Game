@@ -1,10 +1,10 @@
 pub mod bounds;
 pub mod vector2;
 
-trait VectorOps {
+pub trait VectorOps {
     type Output;
 
     fn len(&self) -> Self::Output;
 
-    fn normalize(&self) -> Self;
+    fn normal(&self) -> Self;
 }

@@ -1,7 +1,7 @@
 use crate::math::VectorOps;
 use sdl3::render::FPoint;
 use serde::{Deserialize, Serialize};
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(PartialEq, Debug, Default, Clone, Copy, Deserialize, Serialize)]
 pub struct Vector2<T> {
@@ -52,7 +52,7 @@ impl VectorOps for Vector2<f32> {
         (self.x * self.x + self.y * self.y).sqrt()
     }
 
-    fn normalize(&self) -> Vector2<f32> {
+    fn normal(&self) -> Vector2<f32> {
         *self / self.len()
     }
 }
@@ -64,9 +64,23 @@ impl VectorOps for Vector2<f64> {
         (self.x * self.x + self.y * self.y).sqrt()
     }
 
-    fn normalize(&self) -> Vector2<f64> {
+    fn normal(&self) -> Vector2<f64> {
         *self / self.len()
     }
+}
+
+impl<T> Neg for Vector2<T>
+where
+	T: Neg<Output = T>
+{
+	type Output = Self;
+
+	fn neg(self) -> Self::Output {
+		Self {
+			x: -self.x,
+			y: -self.y,
+		}
+	}
 }
 
 impl<T> Add for Vector2<T>
@@ -83,6 +97,16 @@ where
     }
 }
 
+impl<T> AddAssign for Vector2<T>
+where
+	T: AddAssign<T>,
+{
+	fn add_assign(&mut self, rhs: Self) {
+		self.x += rhs.x;
+		self.y += rhs.y;
+	}
+}
+
 impl<T> Sub for Vector2<T>
 where
     T: Sub<T, Output = T>,
@@ -95,6 +119,29 @@ where
             y: self.y - rhs.y,
         }
     }
+}
+
+impl<T> SubAssign for Vector2<T>
+where
+	T: SubAssign<T>,
+{
+	fn sub_assign(&mut self, rhs: Self) {
+		self.x -= rhs.x;
+		self.y -= rhs.y;
+	}
+}
+
+impl<T> Mul for Vector2<T>
+where
+	T: Mul<T, Output = T>,
+	T: Add<T, Output = T>,
+	T: Copy,
+{
+	type Output = T;
+
+	fn mul(self, rhs: Self) -> Self::Output {
+		self.x * self.y + rhs.x * rhs.y
+	}
 }
 
 impl<T> Mul<T> for Vector2<T>
@@ -112,6 +159,17 @@ where
     }
 }
 
+impl<T> MulAssign<T> for Vector2<T>
+where
+	T: MulAssign<T>,
+	T: Copy,
+{
+	fn mul_assign(&mut self, rhs: T) {
+		self.x *= rhs;
+		self.y *= rhs;
+	}
+}
+
 impl<T> Div<T> for Vector2<T>
 where
     T: Div<T, Output = T>,
@@ -125,6 +183,17 @@ where
             y: self.y / rhs,
         }
     }
+}
+
+impl<T> DivAssign<T> for Vector2<T>
+where
+	T: DivAssign<T>,
+	T: Copy,
+{
+	fn div_assign(&mut self, rhs: T) {
+		self.x /= rhs;
+		self.y /= rhs;
+	}
 }
 
 impl<T> From<FPoint> for Vector2<T>
@@ -154,8 +223,9 @@ where
 #[cfg(test)]
 mod tests {
     use crate::math::vector2::Vector2;
+	use crate::math::VectorOps;
 
-    #[test]
+	#[test]
     fn test_add() {
         let v1 = Vector2 { x: 3.0, y: 4.0 };
         let v2 = Vector2 { x: 7.0, y: 6.0 };
@@ -164,4 +234,13 @@ mod tests {
 
         assert_eq!(res, Vector2 { x: 10., y: 10. });
     }
+
+	#[test]
+	fn test_normal() {
+		let v1 = Vector2 { x: 3.0, y: 4.0 };
+
+		let res = v1.normal();
+
+		assert_eq!(1.0, res.len());
+	}
 }

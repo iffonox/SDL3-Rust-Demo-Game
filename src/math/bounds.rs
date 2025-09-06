@@ -5,7 +5,12 @@ pub trait Bounds {
     fn bottom(&self) -> f32;
     fn left(&self) -> f32;
     fn right(&self) -> f32;
-    fn center(&self) -> FPoint;
+    fn center(&self) -> FPoint {
+		FPoint {
+			x: (self.left() + self.right()) / 2.0,
+			y: (self.top() + self.bottom()) / 2.0,
+		}
+	}
 
     fn set_center<T: Into<FPoint>>(&mut self, position: T);
 
@@ -24,6 +29,10 @@ pub trait Bounds {
             && self.top() <= other.bottom()
             && self.bottom() >= other.top()
     }
+
+	fn intersection(&self, other: Self) -> Self;
+
+	fn join(&self, other: Self) -> Self;
 }
 
 impl Bounds for FRect {
@@ -59,19 +68,46 @@ impl Bounds for FRect {
         }
     }
 
-    fn center(&self) -> FPoint {
-        FPoint {
-            x: (self.left() + self.right()) / 2.0,
-            y: (self.top() + self.bottom()) / 2.0,
-        }
-    }
-
     fn set_center<T: Into<FPoint>>(&mut self, position: T) {
         let point = position.into();
 
         self.x = point.x - self.w / 2.0;
         self.y = point.y - self.h / 2.0;
     }
+
+	fn intersection(&self, other: Self) -> Self {
+		let x = f32::max(self.x, other.x);
+		let y = f32::max(self.y, other.y);
+		let bottom = f32::min(self.bottom(), other.bottom());
+		let right = f32::min(self.right(), other.right());
+
+		let w = right - x;
+		let h = bottom - y;
+
+		Self {
+			x,
+			y,
+			w,
+			h,
+		}
+	}
+
+	fn join(&self, other: Self) -> Self {
+		let x = f32::min(self.x, other.x);
+		let y = f32::min(self.y, other.y);
+		let bottom = f32::max(self.bottom(), other.bottom());
+		let right = f32::max(self.right(), other.right());
+
+		let w = right - x;
+		let h = bottom - y;
+
+		Self {
+			x,
+			y,
+			w,
+			h,
+		}
+	}
 }
 
 #[cfg(test)]

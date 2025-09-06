@@ -30,27 +30,6 @@ impl Default for Drawable {
     }
 }
 
-#[derive(Debug, Default, Clone, Copy)]
-pub struct PhysicsFrame {
-    pub speed: PhysicsVector,
-    pub acceleration: PhysicsVector,
-    pub mass: f32,
-    pub friction_coefficient: f32,
-    pub resistance_coefficient: f32, // air or water resistance
-}
-
-#[derive(Debug, Default, Clone)]
-pub struct PhysicsBody {
-    pub current_frame: PhysicsFrame,
-    pub next_frame: PhysicsFrame,
-}
-
-impl PhysicsBody {
-    pub fn apply_force(&mut self, game_object: &GameObject, force: &PhysicsVector) {}
-
-    pub fn apply(&self, game_object: &mut GameObject, delta_t: u64) {}
-}
-
 pub struct ActionHandler {}
 
 pub struct GameObject {
@@ -58,7 +37,6 @@ pub struct GameObject {
     pub bounds: FRect,
 
     pub drawable: Option<Drawable>,
-    pub physics_body: Option<PhysicsBody>,
     pub action_handler: Option<ActionHandler>,
     pub behaviours: Vec<Box<dyn Behaviour>>,
 }
@@ -74,7 +52,6 @@ impl GameObject {
                 h: f32::default(),
             },
             drawable: Some(Drawable::default()),
-            physics_body: None,
             action_handler: None,
             behaviours: Vec::new(),
         }
@@ -83,6 +60,8 @@ impl GameObject {
     pub fn tick(&mut self, delta_t: f64, actions: Action, other_bounds: &Vec<(i32, FRect)>) {
         let behaviours = &mut self.behaviours;
         let mut bounds = self.bounds;
+		let mut collisions = Vec::new();
+		let mut force = None;
 
         for i in 0..behaviours.len() {
             let behaviour = behaviours[i].as_mut();
@@ -93,6 +72,8 @@ impl GameObject {
                     bounds,
                     actions,
                     other_bounds,
+					collisions: &collisions,
+					force,
                 },
                 delta_t,
             );
@@ -100,6 +81,12 @@ impl GameObject {
             if let Some(b) = result.bounds {
                 bounds = b
             }
+
+			if let Some(c) = result.collisions {
+				collisions = c
+			}
+
+			force = result.force;
         }
 
         self.bounds = bounds;

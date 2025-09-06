@@ -1,9 +1,8 @@
 use sdl3::libc::{RAND_MAX, rand, srand};
-use std::ffi::c_uint;
 
 pub fn seed_random(seed: u32) {
     unsafe {
-        srand(seed as c_uint);
+        srand(seed);
     }
 }
 
