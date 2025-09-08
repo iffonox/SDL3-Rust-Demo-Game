@@ -42,21 +42,24 @@ impl Behaviour for ControllableBehaviour {
             self.speed
         };
 
-		let mut cant_jump = true;
+		let mut in_air = true;
 
 		for i in 0..params.collisions.len() {
 			let (_, collision) = params.collisions[i];
 
 			if collision.w > collision.h && collision.top() > bounds.center().y {
-				cant_jump = false;
+				in_air = false;
 
 				break;
 			}
 		}
 
-		if !cant_jump && actions.contains(Action::Jump) {
+		if !in_air && actions.contains(Action::Jump) && self.jumping == 0.0 {
+			self.jumping = 0.3;	// 0.3 sec cooldown for jumping; this is just a dirty fix for multi-jumps
 			impulse += PhysicsVector { x: 0.0, y: -self.run_speed };
 		}
+
+		self.jumping = f32::max(0.0, self.jumping - sec);
 
         // if actions.contains(Action::MoveUp) {
         //     position.y -= speed * sec;

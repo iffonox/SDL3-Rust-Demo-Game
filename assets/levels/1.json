@@ -198,8 +198,8 @@
 				"a": 0
 			},
 			"bounds": {
-				"x": 100,
-				"y": 520,
+				"x": 120,
+				"y": 490,
 				"w": 100,
 				"h": 20
 			},
@@ -304,6 +304,55 @@
 				"h": 20
 			},
 			"behaviours": [
+				{
+					"type": "Collision"
+				}
+			]
+		},
+		{
+			"id": 13,
+			"color": {
+				"r": 116,
+				"g": 116,
+				"b": 116,
+				"a": 0
+			},
+			"bounds": {
+				"x": 20,
+				"y": 520,
+				"w": 20,
+				"h": 20
+			},
+			"behaviours": [
+				{
+					"type": "Collision"
+				}
+			]
+		},
+		{
+			"id": 13,
+			"color": {
+				"r": 255,
+				"g": 223,
+				"b": 8,
+				"a": 0
+			},
+			"bounds": {
+				"x": 10,
+				"y": 120,
+				"w": 80,
+				"h": 20
+			},
+			"behaviours": [
+				{
+					"type": "Dvd",
+					"use_world_bounds": true,
+					"speed": {
+						"type": "Fixed",
+							"x": 30,
+							"y": 0
+					}
+				},
 				{
 					"type": "Collision"
 				}
