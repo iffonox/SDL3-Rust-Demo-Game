@@ -31,8 +31,10 @@ impl ControllableBehaviour {
 impl Behaviour for ControllableBehaviour {
     fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult {
         let sec = delta_t as f32;
+		let bounds = params.bounds;
         let actions = params.actions;
 		let mut force = PhysicsVector::default();
+		let mut impulse = PhysicsVector::default();
 
         let speed = if actions.contains(Action::Sprint) {
             self.run_speed
@@ -40,17 +42,20 @@ impl Behaviour for ControllableBehaviour {
             self.speed
         };
 
-		if actions.contains(Action::Jump) && self.jumping < 1.0 && self.can_jump {
-			self.jumping += sec;
-		} else {
-			self.can_jump = false;
-			self.jumping = f32::max(0.0, self.jumping - sec);
+		let mut cant_jump = true;
+
+		for i in 0..params.collisions.len() {
+			let (_, collision) = params.collisions[i];
+
+			if collision.w > collision.h && collision.top() > bounds.center().y {
+				cant_jump = false;
+
+				break;
+			}
 		}
 
-		if self.jumping == 0.0 {
-			self.can_jump = true;
-		} else {
-			force += PhysicsVector { x: 0.0, y: -speed * 5.0 };
+		if !cant_jump && actions.contains(Action::Jump) {
+			impulse += PhysicsVector { x: 0.0, y: -self.run_speed };
 		}
 
         // if actions.contains(Action::MoveUp) {
@@ -69,6 +74,7 @@ impl Behaviour for ControllableBehaviour {
             bounds: None,
             collisions: None,
 			force: Some(force),
+			impulse: Some(impulse),
         }
     }
 }

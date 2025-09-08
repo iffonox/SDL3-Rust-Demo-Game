@@ -34,6 +34,7 @@ impl Behaviour for CollisionBehaviour {
             bounds: None,
             collisions: Some(collisions),
 			force: None,
+			impulse: None,
         }
     }
 }

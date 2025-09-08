@@ -62,6 +62,7 @@ impl GameObject {
         let mut bounds = self.bounds;
 		let mut collisions = Vec::new();
 		let mut force = None;
+		let mut impulse = None;
 
         for i in 0..behaviours.len() {
             let behaviour = behaviours[i].as_mut();
@@ -74,6 +75,7 @@ impl GameObject {
                     other_bounds,
 					collisions: &collisions,
 					force,
+					impulse,
                 },
                 delta_t,
             );
@@ -87,6 +89,7 @@ impl GameObject {
 			}
 
 			force = result.force;
+			impulse = result.impulse;
         }
 
         self.bounds = bounds;

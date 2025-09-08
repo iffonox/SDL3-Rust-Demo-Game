@@ -73,8 +73,8 @@ impl World {
             .push(Box::new(CollisionBehaviour::new(player.bounds)));
         player.behaviours.push(Box::new(ControllableBehaviour::new(
             self.bounds,
-            50.0,
-            200.0,
+            5.0,
+            15.0,
         )));
 		player.behaviours.push(Box::new(PhysicsBehaviour::new(
 			self.bounds,

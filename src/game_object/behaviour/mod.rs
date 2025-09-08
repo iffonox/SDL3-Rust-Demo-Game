@@ -14,13 +14,15 @@ pub struct BehaviourParameter<'a> {
     pub actions: Action,
     pub other_bounds: &'a Vec<(i32, FRect)>,
 	pub collisions: &'a Vec<(i32, FRect)>,
-	pub force: Option<PhysicsVector>
+	pub force: Option<PhysicsVector>,
+	pub impulse: Option<PhysicsVector>,
 }
 
 pub struct BehaviourResult {
     pub bounds: Option<FRect>,
     pub collisions: Option<Vec<(i32, FRect)>>,
-	pub force: Option<PhysicsVector>
+	pub force: Option<PhysicsVector>,
+	pub impulse: Option<PhysicsVector>,
 }
 
 pub trait Behaviour {

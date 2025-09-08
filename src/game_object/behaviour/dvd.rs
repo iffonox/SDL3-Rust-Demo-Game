@@ -46,6 +46,7 @@ impl Behaviour for DvdBehaviour {
             bounds: Some(bounds),
             collisions: None,
 			force: None,
+			impulse: None,
         }
     }
 }
