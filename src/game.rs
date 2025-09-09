@@ -1,25 +1,27 @@
+use crate::game_object::world::World;
+use crate::math::bounds::Bounds;
 use crate::serialization::font::FontDefinition;
 use crate::serialization::game::{GameData, LevelDefinition};
 use crate::serialization::level::LevelData;
 use crate::serialization::texture::TextureDefinition;
 use crate::serialization::{Action, AssetId};
-use crate::game_object::world::World;
-use crate::math::bounds::Bounds;
 use sdl3::Sdl;
 use sdl3::event::Event;
 use sdl3::keyboard::{Keycode, Mod};
-use sdl3::pixels::Color;
-use sdl3::render::{FPoint, FRect, TextureCreator, WindowCanvas};
-use sdl3::surface::Surface;
+use sdl3::pixels::{Color, PixelFormat, PixelFormatEnum};
+use sdl3::render::{FPoint, FRect, SurfaceCanvas, TextureCreator, WindowCanvas};
+use sdl3::surface::{Surface, SurfaceContext};
 use sdl3::timer::performance_frequency;
 use sdl3::ttf::{Font, Sdl3TtfContext};
-use sdl3::video::WindowContext;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
+use sdl3::mouse::MouseButton;
+use sdl3::mouse::SystemCursor::No;
+use sdl3::video::WindowContext;
 
 static FPS_LIMIT: u64 = 60;
 static MIN_FRAME_TIME: u64 = 1_000u64 / FPS_LIMIT;
@@ -27,10 +29,11 @@ static MIN_FRAME_TIME: u64 = 1_000u64 / FPS_LIMIT;
 pub struct Game<'a> {
     keymap: HashMap<Keycode, Action>,
     actions: Action,
-    game_data: &'a GameData,
+    game_data: GameData,
     sdl_context: &'a Sdl,
-    texture_creator: &'a TextureCreator<WindowContext>,
-    canvas: &'a mut WindowCanvas,
+	main_texture_creator: TextureCreator<WindowContext>,
+    main_canvas: WindowCanvas,
+    menu_canvas: SurfaceCanvas<'a>,
     fonts: HashMap<AssetId, Font<'a>>,
     surfaces: HashMap<AssetId, Surface<'a>>,
     performance_frequency: f64,
@@ -44,21 +47,32 @@ pub struct Game<'a> {
     fps_frame_count: u64,
     fps_last_tick: u64,
     fps: f32,
+	window_bounds: FRect,
+	click: Option<FPoint>,
     should_quit: bool,
     should_wait_after_frame: bool,
     should_show_debug: bool,
+	menu_open: bool,
 }
 
 impl<'a> Game<'a> {
     pub fn new(
         width: u32,
         height: u32,
-        game_data: &'a GameData,
+        game_data: GameData,
         sdl_context: &'a Sdl,
-        canvas: &'a mut WindowCanvas,
-        texture_creator: &'a TextureCreator<WindowContext>,
         ttf_context: &'a Sdl3TtfContext,
     ) -> Self {
+        let video_subsystem = sdl_context.video().unwrap();
+
+        let mut window = video_subsystem
+            .window("rust-sdl3 demo", width, height)
+            .position_centered()
+            .build()
+            .unwrap();
+
+        let canvas = window.into_canvas();
+
         let fonts = Self::load_fonts(&game_data.fonts, ttf_context);
 
         let surfaces = Self::load_surfaces(&game_data.textures);
@@ -67,29 +81,41 @@ impl<'a> Game<'a> {
 
         let level_data = Self::load_levels(&game_data.levels);
 
+        let menu_canvas = SurfaceCanvas::from_surface(
+            Surface::new(width, height, PixelFormat::from(PixelFormatEnum::ARGB8888))
+                .expect("Surface creation error"),
+        )
+        .expect("Surface creation error");
+
+		let main_texture_creator = canvas.texture_creator();
+
         Self {
             keymap,
             actions: Action::None,
             game_data,
             level_data,
-            texture_creator,
+			main_texture_creator,
             surfaces,
             keymod: Mod::NOMOD,
             world: World::new(width as f32, height as f32),
             sdl_context,
-            canvas,
+            main_canvas: canvas,
+            menu_canvas,
             fonts,
             performance_frequency: performance_frequency() as f64,
-            bg_color: Color::RGB(255, 255, 255),
+            bg_color: Color::WHITE,
             last_tick: 0,
             frame_time: 0,
             frame_number: 0,
             fps_frame_count: 0,
             fps_last_tick: 0,
             fps: 0.0,
+			window_bounds: FRect { x: 0.0, y: 0.0, w: width as f32, h: height as f32},
+			click: None,
             should_quit: false,
             should_wait_after_frame: true,
             should_show_debug: false,
+			menu_open: false
         }
     }
 
@@ -133,7 +159,7 @@ impl<'a> Game<'a> {
 
         // Load keymap, will later be loaded from a config file
 
-        keymap.insert(Keycode::Escape, Action::Quit);
+        keymap.insert(Keycode::Escape, Action::Menu);
         keymap.insert(Keycode::F2, Action::Debug);
         keymap.insert(Keycode::F3, Action::FpsLimit);
         keymap.insert(Keycode::W, Action::MoveUp);
@@ -165,8 +191,6 @@ impl<'a> Game<'a> {
     }
 
     fn init(&mut self) {
-        dbg!(performance_frequency());
-
         self.world
             .load_level(&self.level_data.get(0).expect("no level data available"));
     }
@@ -210,6 +234,12 @@ impl<'a> Game<'a> {
                     self.actions &= (*action).not();
                 }
             }
+			Event::MouseButtonDown { mouse_btn: MouseButton::Left, x, y, .. } => {
+				self.click = Some(FPoint { x, y });
+			}
+			Event::MouseButtonUp { mouse_btn: MouseButton::Left, .. } => {
+				self.click = None;
+			}
             Event::Quit { .. } => {
                 self.actions |= Action::Quit;
             }
@@ -222,6 +252,12 @@ impl<'a> Game<'a> {
             self.should_quit = true;
             return;
         }
+
+		if self.actions.contains(Action::Menu) {
+			self.actions &= Action::Menu.not();
+			self.menu_open = !self.menu_open;
+			self.last_tick = 0;
+		}
 
         if self.actions.contains(Action::FpsLimit) {
             self.actions &= Action::FpsLimit.not();
@@ -241,26 +277,44 @@ impl<'a> Game<'a> {
             if let Some(texture_index) = drawable.texture
                 && let Some(surface) = self.surfaces.get(&texture_index)
             {
-                if let Ok(mut texture) = self.texture_creator.create_texture_from_surface(surface) {
+                if let Ok(mut texture) = self.main_texture_creator.create_texture_from_surface(surface) {
                     if drawable.tint_texture {
                         texture.set_color_mod(drawable.color.r, drawable.color.g, drawable.color.b);
                     }
 
-                    self.canvas
+                    self.main_canvas
                         .copy(&texture, None, rect)
                         .expect("texture error");
                 }
             } else {
-                self.canvas.set_draw_color(drawable.color);
-                self.canvas.fill_rect(rect).expect("draw error");
+                self.main_canvas.set_draw_color(drawable.color);
+                self.main_canvas.fill_rect(rect).expect("draw error");
             }
 
-            if self.should_show_debug {
-                self.canvas.set_draw_color(Color::MAGENTA);
-                self.canvas.draw_rect(rect).expect("draw error");
-            }
+			if self.should_show_debug {
+				self.main_canvas.set_draw_color(Color::MAGENTA);
+				self.main_canvas.draw_rect(FRect { x: rect.x - 1.0, y: rect.y - 1.0, w: rect.w + 2.0, h: rect.h + 2.0 }).expect("draw error");
+			}
         }
     }
+
+	fn render_menu(&mut self) {
+		self.menu_canvas.set_draw_color(Color::RGBA(0, 0, 0, 127));
+		self.menu_canvas.clear();
+
+
+
+		self.menu_canvas.present();
+
+		let menu_surface = self.menu_canvas.surface();
+
+		let menu_surface = self
+			.main_texture_creator
+			.create_texture_from_surface(menu_surface)
+			.expect("texture creation panic");
+
+		self.main_canvas.copy(&menu_surface, None, Some(self.window_bounds)).expect("menu render error");
+	}
 
     fn tick(&mut self) {
         let now = sdl3::timer::performance_counter();
@@ -274,18 +328,24 @@ impl<'a> Game<'a> {
         let delta_t = now - self.last_tick;
         let delta_t_sec = delta_t as f64 / self.performance_frequency;
 
-        self.world.tick(delta_t_sec, self.actions);
+		self.main_canvas.set_draw_color(self.bg_color);
+		self.main_canvas.clear();
 
-        self.canvas.set_draw_color(self.bg_color);
-        self.canvas.clear();
+		if !self.menu_open {
+			self.world.tick(delta_t_sec, self.actions);
+		}
 
-        self.render_drawables();
+		self.render_drawables();
 
-        if self.should_show_debug {
-            self.render_debug_msg(delta_t_sec);
-        }
+		if self.menu_open {
+			self.render_menu();
+		}
 
-        self.canvas.present();
+		if self.should_show_debug {
+			self.render_debug_msg(delta_t_sec);
+		}
+
+        self.main_canvas.present();
 
         self.last_tick = now;
         self.keymod = Mod::NOMOD;
@@ -328,7 +388,7 @@ impl<'a> Game<'a> {
         let surface_height = surface.height() as f32;
 
         let texture = self
-            .texture_creator
+            .main_texture_creator
             .create_texture_from_surface(surface)
             .expect("texture creation panic");
 
@@ -336,9 +396,11 @@ impl<'a> Game<'a> {
 
         let bg_rect = FRect::new(pos.x, pos.y, surface_width + 10.0, surface_height + 4.0);
 
-        self.canvas.set_draw_color(Color::RGB(0, 0, 0));
-        self.canvas.fill_rect(bg_rect).expect("debug message panic");
-        self.canvas
+        self.main_canvas.set_draw_color(Color::RGB(0, 0, 0));
+        self.main_canvas
+            .fill_rect(bg_rect)
+            .expect("debug message panic");
+        self.main_canvas
             .copy(&texture, None, Some(text_rect))
             .expect("debug message panic");
 

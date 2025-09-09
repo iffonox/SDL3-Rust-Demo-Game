@@ -10,9 +10,8 @@ You can install both libraries with [brew](https://brew.sh/): `brew install sdl3
 
 * F2: toggles debug info
 * F3: toggle fps limit
-* Esc: quits the program
+* Esc: pause
 * W: move up
 * A: move left
-* S: move down
-* D: move right
+* Space: jump
 * Shift: run while holding down

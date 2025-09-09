@@ -94,4 +94,6 @@ pub enum Action {
     Jump = 256,
     Sprint = 512,
     Attack = 1024,
+	Menu = 2048,
+	Click = 4096,
 }

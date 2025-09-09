@@ -3,6 +3,7 @@ mod serialization;
 mod game_object;
 mod math;
 mod util;
+mod gui;
 
 use crate::game::Game;
 use crate::serialization::game::GameData;
@@ -26,28 +27,15 @@ fn main() {
     let game_data: GameData = serde_json::from_reader(reader).expect("Could not parse assets.json");
 
     let sdl_context = sdl3::init().unwrap();
-    let video_subsystem = sdl_context.video().unwrap();
-    let ttf_context = ttf::init();
 
-    let window = video_subsystem
-        .window("rust-sdl3 demo", 800, 600)
-        .position_centered()
-        .build()
-        .unwrap();
-
-    let mut canvas = window.into_canvas();
-
-    let texture_creator = canvas.texture_creator();
-
+	let ttf_context = ttf::init();
     let ttf_context = ttf_context.expect("font context init error");
 
     let mut game: Game = Game::new(
         800,
         600,
-        &game_data,
+        game_data,
         &sdl_context,
-        &mut canvas,
-        &texture_creator,
         &ttf_context,
     );
 
