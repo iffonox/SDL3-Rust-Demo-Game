@@ -10,7 +10,7 @@ use sdl3::event::Event;
 use sdl3::keyboard::{Keycode, Mod};
 use sdl3::pixels::{Color, PixelFormat, PixelFormatEnum};
 use sdl3::render::{FPoint, FRect, SurfaceCanvas, TextureCreator, WindowCanvas};
-use sdl3::surface::{Surface, SurfaceContext};
+use sdl3::surface::{Surface};
 use sdl3::timer::performance_frequency;
 use sdl3::ttf::{Font, Sdl3TtfContext};
 use std::collections::HashMap;
@@ -20,7 +20,6 @@ use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
 use sdl3::mouse::MouseButton;
-use sdl3::mouse::SystemCursor::No;
 use sdl3::video::WindowContext;
 
 static FPS_LIMIT: u64 = 60;
@@ -65,7 +64,7 @@ impl<'a> Game<'a> {
     ) -> Self {
         let video_subsystem = sdl_context.video().unwrap();
 
-        let mut window = video_subsystem
+        let window = video_subsystem
             .window("rust-sdl3 demo", width, height)
             .position_centered()
             .build()
