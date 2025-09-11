@@ -99,9 +99,21 @@ pub enum UiElement {
 
 
 impl UiElement {
-	pub fn element_with_id(&self, id: AssetId) -> Option<UiElement>
+	pub fn element_with_id(&self, id: AssetId) -> Option<&UiElement>
 	{
+		if let Some(self_id) = self.get_id() && id == self_id {
+			return Some(self);
+		}
+
 		let children: &Vec<UiElement> = self.get_children();
+
+		for i in 0..children.len() {
+			let child = &children[i];
+
+			if let Some(element) = child.element_with_id(id) {
+				return Some(element);
+			}
+		}
 
 		None
 	}
@@ -111,6 +123,14 @@ impl UiElement {
 		match self {
 			UiElement::Box(r#box) => { &r#box.children },
 			UiElement::Label(label) => { &label.children },
+		}
+	}
+
+	pub fn get_id(&self) -> Option<AssetId> {
+		match self {
+			UiElement::Box(r#box) => { Some(r#box.id) },
+			UiElement::Label(label) => { Some(label.id) },
+			_ => None
 		}
 	}
 }
