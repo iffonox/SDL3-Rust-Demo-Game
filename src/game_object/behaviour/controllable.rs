@@ -3,6 +3,7 @@ use crate::game_object::{PhysicsVector};
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
 use sdl3::render::FRect;
+use crate::math::VectorOps;
 
 pub struct ControllableBehaviour {
     bounds: FRect,
@@ -62,16 +63,18 @@ impl Behaviour for ControllableBehaviour {
 		self.jumping = f32::max(0.0, self.jumping - sec);
 
         // if actions.contains(Action::MoveUp) {
-        //     position.y -= speed * sec;
+        //     force -= PhysicsVector { x: 0.0, y: 1.0 };
         // } else if actions.contains(Action::MoveDown) {
-        //     position.y += speed * sec;
+        //     force += PhysicsVector { x: 0.0, y: 1.0 };
         // }
 
         if actions.contains(Action::MoveLeft) {
-			force += PhysicsVector { x: -speed, y: 0.0 };
+			force -= PhysicsVector { x: 1.0, y: 0.0 };
         } else if actions.contains(Action::MoveRight) {
-			force += PhysicsVector { x: speed, y: 0.0 };
+			force += PhysicsVector { x: 1.0, y: 0.0 };
         }
+
+		force = force.normal() * speed;
 
         BehaviourResult {
             bounds: None,
