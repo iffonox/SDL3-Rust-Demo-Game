@@ -1,9 +1,13 @@
+use crate::serialization::AssetBounds;
 use crate::game_object::PhysicsVector;
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
 use sdl3::render::FRect;
+use serde::Deserialize;
 
+#[derive(Deserialize, Debug, Clone, Copy)]
 pub struct DvdBehaviour {
+	#[serde(with = "AssetBounds")]
     bounds: FRect,
     speed: PhysicsVector,
 }

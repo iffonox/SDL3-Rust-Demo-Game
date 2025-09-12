@@ -1,10 +1,14 @@
+use crate::serialization::AssetBounds;
 use crate::game_object::PhysicsVector;
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
 use sdl3::render::FRect;
+use serde::Deserialize;
 use crate::math::VectorOps;
 
+#[derive(Deserialize, Debug, Clone, Copy)]
 pub struct PhysicsBehaviour {
+	#[serde(with = "AssetBounds")]
     bounds: FRect,
     speed: PhysicsVector,
 	mass: f32,

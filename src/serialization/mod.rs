@@ -21,63 +21,21 @@ pub struct AssetSize {
 }
 
 #[derive(Deserialize, Debug, Clone, Copy)]
-pub struct AssetBounds {
+#[serde(remote = "FRect")]
+pub(crate) struct AssetBounds {
     pub x: f32,
     pub y: f32,
     pub w: f32,
     pub h: f32,
 }
 
-impl From<FRect> for AssetBounds {
-    fn from(value: FRect) -> Self {
-        Self {
-            x: value.x,
-            y: value.y,
-            w: value.w,
-            h: value.h,
-        }
-    }
-}
-
-impl From<AssetBounds> for FRect {
-    fn from(value: AssetBounds) -> Self {
-        Self {
-            x: value.x,
-            y: value.y,
-            w: value.w,
-            h: value.h,
-        }
-    }
-}
-
 #[derive(Deserialize, Debug, Clone, Copy)]
-pub struct AssetColor {
+#[serde(remote = "Color")]
+pub(crate) struct AssetColor {
     pub r: u8,
     pub g: u8,
     pub b: u8,
     pub a: u8,
-}
-
-impl From<Color> for AssetColor {
-    fn from(value: Color) -> Self {
-        Self {
-            r: value.r,
-            g: value.g,
-            b: value.b,
-            a: value.a,
-        }
-    }
-}
-
-impl From<AssetColor> for Color {
-    fn from(value: AssetColor) -> Self {
-        Self {
-            r: value.r,
-            g: value.g,
-            b: value.b,
-            a: value.a,
-        }
-    }
 }
 
 #[bitmask(u32)]

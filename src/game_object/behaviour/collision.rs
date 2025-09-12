@@ -1,8 +1,12 @@
+use crate::serialization::AssetBounds;
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
 use sdl3::render::FRect;
+use serde::Deserialize;
 
+#[derive(Deserialize, Debug, Clone, Copy)]
 pub struct CollisionBehaviour {
+	#[serde(with = "AssetBounds")]
     bounds: FRect,
 }
 

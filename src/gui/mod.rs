@@ -1,4 +1,5 @@
-use sdl3::mouse::SystemCursor::No;
+use sdl3::pixels::Color;
+use sdl3::render::FRect;
 use serde::Deserialize;
 use crate::serialization::{AssetBounds, AssetColor, AssetId};
 
@@ -66,26 +67,32 @@ pub struct ConstraintSet {
 #[derive(Deserialize, Debug, Clone, Copy)]
 #[serde(tag = "type")]
 pub enum Frame {
-	Rect(AssetBounds),
+	#[serde(with = "AssetBounds")]
+	Rect(FRect),
 	Constraint(ConstraintSet)
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct BoxElement {
 	pub id: AssetId,
-	pub bounds: AssetBounds,
+	#[serde(with = "AssetBounds")]
+	pub bounds: FRect,
 	pub z: i32,
-	pub bg: AssetColor,
+	#[serde(with = "AssetColor")]
+	pub bg: Color,
 	pub children: Vec<UiElement>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct LabelElement {
 	pub id: AssetId,
-	pub bounds: AssetBounds,
+	#[serde(with = "AssetBounds")]
+	pub bounds: FRect,
 	pub z: i32,
-	pub fg: AssetColor,
-	pub bg: AssetColor,
+	#[serde(with = "AssetColor")]
+	pub fg: Color,
+	#[serde(with = "AssetColor")]
+	pub bg: Color,
 	pub text: String,
 	pub children: Vec<UiElement>,
 }
