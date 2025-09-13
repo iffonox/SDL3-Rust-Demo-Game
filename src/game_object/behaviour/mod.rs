@@ -3,9 +3,11 @@ pub mod controllable;
 pub mod dvd;
 pub mod physics;
 
-use crate::serialization::{Action, AssetBounds, AssetId};
+use crate::serialization::{AssetBounds, AssetId};
 use sdl3::render::FRect;
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::ser::SerializeMap;
+use crate::actions::Action;
 use crate::game_object::behaviour::collision::CollisionBehaviour;
 use crate::game_object::behaviour::controllable::ControllableBehaviour;
 use crate::game_object::behaviour::dvd::DvdBehaviour;
@@ -18,7 +20,23 @@ fn _de_optional_rect<'de, D>(deserializer: D) -> Result<Option<FRect>, D::Error>
 	Ok(AssetBounds::deserialize(deserializer).ok())
 }
 
-#[derive(Deserialize, Debug, Clone, Copy)]
+fn _ser_optional_rect<S>(id: &Option<FRect>, s: S) -> Result<S::Ok, S::Error>
+where
+	S: Serializer,
+{
+	if let Some(rect) = id {
+		let mut ser= s.serialize_map(Some(4)).expect("error while serializing rect");
+		ser.serialize_entry("x", &rect.x).expect("error while serializing x");
+		ser.serialize_entry("y", &rect.y).expect("error while serializing y");
+		ser.serialize_entry("w", &rect.w).expect("error while serializing w");
+		ser.serialize_entry("h", &rect.h).expect("error while serializing h");
+		ser.end()
+	} else {
+		s.serialize_none()
+	}
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, Copy)]
 #[serde(tag = "type")]
 pub enum BehaviourSpeed {
 	Fixed(PhysicsVector),
@@ -79,7 +97,7 @@ pub(crate) const fn _default_rect() -> FRect {
 	}
 }
 
-#[derive(Deserialize, Debug, Clone, Copy)]
+#[derive(Deserialize, Serialize, Debug, Clone, Copy)]
 #[serde(tag = "type")]
 pub enum BehaviourType {
 	Dvd(DvdBehaviour),

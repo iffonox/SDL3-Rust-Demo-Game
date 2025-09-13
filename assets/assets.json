@@ -30,5 +30,11 @@
 			"path": "./assets/levels/1.json"
 		}
 	],
+	"guis": [
+		{
+			"id": 1,
+			"path": "./assets/gui/menu.json"
+		}
+	],
 	"debug_font_id": 1
 }

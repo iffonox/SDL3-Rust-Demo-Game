@@ -1,13 +1,14 @@
+use crate::game_object::behaviour::_ser_optional_rect;
 use crate::game_object::behaviour::_de_optional_rect;
 use crate::game_object::PhysicsVector;
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult, BehaviourSpeed};
 use crate::math::bounds::Bounds;
 use sdl3::render::FRect;
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 
-#[derive(Deserialize, Debug, Clone, Copy)]
+#[derive(Deserialize, Serialize, Debug, Clone, Copy)]
 pub struct DvdBehaviour {
-	#[serde(default, deserialize_with = "_de_optional_rect")]
+	#[serde(default, deserialize_with = "_de_optional_rect", serialize_with = "_ser_optional_rect")]
     pub bounds: Option<FRect>,
 	#[serde(deserialize_with = "_de_behavior_speed")]
     pub speed: PhysicsVector,

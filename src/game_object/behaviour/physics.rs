@@ -1,25 +1,12 @@
+use crate::game_object::behaviour::_ser_optional_rect;
 use crate::game_object::behaviour::_de_optional_rect;
 use crate::game_object::PhysicsVector;
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
 use sdl3::render::FRect;
 use sdl3::sys::everything::SDL_STANDARD_GRAVITY;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use crate::math::VectorOps;
-
-#[derive(Deserialize, Debug, Clone, Copy)]
-pub struct PhysicsBehaviour {
-	#[serde(default, deserialize_with = "_de_optional_rect")]
-    pub bounds: Option<FRect>,
-    pub speed: PhysicsVector,
-	pub mass: f32,
-}
-
-impl PhysicsBehaviour {
-    pub fn new(bounds: FRect, speed: PhysicsVector, mass: f32) -> Self {
-        Self { bounds: Some(bounds), speed, mass }
-    }
-}
 
 static PIXELS_PER_METER: f32 = 32.0;
 static METERS_PER_PIXEL: f32 = 1.0/PIXELS_PER_METER;
@@ -30,6 +17,20 @@ static GRAVITY: PhysicsVector = PhysicsVector {
 };
 
 static AIR_RESISTANCE_COEF: f32 = 0.01;
+
+#[derive(Deserialize, Serialize, Debug, Clone, Copy)]
+pub struct PhysicsBehaviour {
+	#[serde(default, deserialize_with = "_de_optional_rect", serialize_with = "_ser_optional_rect")]
+    pub bounds: Option<FRect>,
+    pub speed: PhysicsVector,
+	pub mass: f32,
+}
+
+impl PhysicsBehaviour {
+    pub fn new(bounds: FRect, speed: PhysicsVector, mass: f32) -> Self {
+        Self { bounds: Some(bounds), speed, mass }
+    }
+}
 
 impl Behaviour for PhysicsBehaviour {
     fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult {

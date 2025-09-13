@@ -1,109 +1,84 @@
+pub mod constraints;
+
+use std::collections::HashMap;
 use sdl3::pixels::Color;
-use sdl3::render::FRect;
-use serde::Deserialize;
+use sdl3::render::{FPoint, FRect};
+use serde::{Deserialize, Serialize};
+use crate::actions::Action;
+use crate::game_object::drawable::DrawLayer;
+use crate::mouse::Mouse;
 use crate::serialization::{AssetBounds, AssetColor, AssetId};
 
-#[derive(Deserialize, Debug, Clone, Copy)]
-#[serde(tag = "type")]
-pub enum Anchor {
-	Top,
-	Bottom,
-	Leading,
-	Trailing,
-	Width,
-	Height,
-	VerticalCenter,
-	HorizontalCenter,
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum Handler {
+	Action(Action),
+	#[serde(with = "AssetColor")]
+	SetBackgroundColor(Color),
+	#[serde(with = "AssetColor")]
+	SetTextColor(Color),
+	SetText(String),
 }
 
-#[derive(Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
-#[serde(tag = "type")]
-pub enum Relation {
-	Equal,
-	Greater,
-	GreaterEqual,
-	Less,
-	LessEqual,
-	None,
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq, Hash)]
+pub enum Event {
+	MouseDown,
+	MouseUp
 }
 
-#[derive(Debug, Clone, Copy, Deserialize)]
-pub struct Constraint {
-	pub own_anchor: Anchor,
-	pub other_anchor: Option<Anchor>,
-	pub other_id: Option<AssetId>,
-	pub relation: Relation,
-	pub factor: f32,
-	pub constant: f32,
+#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+pub enum Align {
+	Start,
+	Center,
+	End
 }
 
-impl Constraint {
-	pub fn to_asset_bounds(&self, root_view: &UiElement) -> Result<AssetBounds, String> {
-		if self.relation != Relation::None {
-			if self.other_anchor.is_none() || self.other_id.is_none() {
-				return Err(String::from("missing anchor"))
-			}
-		}
-
-		let mut x = 0.0;
-		let mut y = 0.0;
-		let mut w = 0.0;
-		let mut h = 0.0;
-
-		Ok(AssetBounds {
-			x,
-			y,
-			w,
-			h,
-		})
-	}
+#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+pub struct TextFormat {
+	pub font_id: AssetId,
+	#[serde(with = "AssetColor")]
+	pub color: Color,
+	pub justify: Align,
+	pub align: Align,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize)]
-pub struct ConstraintSet {
-	pub constraint: [Constraint; 4]
-}
-
-#[derive(Deserialize, Debug, Clone, Copy)]
-#[serde(tag = "type")]
-pub enum Frame {
-	#[serde(with = "AssetBounds")]
-	Rect(FRect),
-	Constraint(ConstraintSet)
-}
-
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct BoxElement {
 	pub id: AssetId,
 	#[serde(with = "AssetBounds")]
 	pub bounds: FRect,
-	pub z: i32,
+	pub z: DrawLayer,
 	#[serde(with = "AssetColor")]
 	pub bg: Color,
+	#[serde(default)]
+	pub on_event: HashMap<Event, Vec<Handler>>,
+	#[serde(default)]
 	pub children: Vec<UiElement>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+pub type FormattedString = String;
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct LabelElement {
 	pub id: AssetId,
 	#[serde(with = "AssetBounds")]
 	pub bounds: FRect,
-	pub z: i32,
-	#[serde(with = "AssetColor")]
-	pub fg: Color,
+	pub z: DrawLayer,
 	#[serde(with = "AssetColor")]
 	pub bg: Color,
-	pub text: String,
+	pub text: FormattedString,
+	pub format: TextFormat,
+	#[serde(default)]
+	pub on_event: HashMap<Event, Vec<Handler>>,
+	#[serde(default)]
 	pub children: Vec<UiElement>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum UiElement {
 	Box(BoxElement),
 	Label(LabelElement),
 }
-
 
 impl UiElement {
 	pub fn element_with_id(&self, id: AssetId) -> Option<&UiElement>
@@ -138,5 +113,18 @@ impl UiElement {
 			UiElement::Box(r#box) => { Some(r#box.id) },
 			UiElement::Label(label) => { Some(label.id) },
 		}
+	}
+	
+	fn get_elements_at(&self, pos: FPoint) -> Vec<UiElement>
+	{
+		
+		Vec::new()
+	}
+	
+	pub fn handle_event(&mut self, mouse: Mouse) -> Option<Action>
+	{
+		
+		
+		None
 	}
 }

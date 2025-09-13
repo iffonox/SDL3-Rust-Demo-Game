@@ -1,9 +1,9 @@
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use crate::game_object::{BoundInfo, ObjectMask};
 
-#[derive(Deserialize, Debug, Clone, Copy)]
+#[derive(Deserialize, Serialize, Debug, Clone, Copy)]
 pub struct CollisionBehaviour {
 	#[serde(default)]
 	pub mask: ObjectMask,

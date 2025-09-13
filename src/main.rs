@@ -4,6 +4,8 @@ mod game_object;
 mod math;
 mod util;
 mod gui;
+mod actions;
+mod mouse;
 
 use crate::game::Game;
 use crate::serialization::game::GameData;

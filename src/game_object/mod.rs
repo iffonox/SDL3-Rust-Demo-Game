@@ -5,12 +5,12 @@ pub mod drawable;
 extern crate sdl3;
 
 use crate::serialization::AssetBounds;
-use crate::serialization::{Action};
 use crate::game_object::behaviour::{BehaviourParameter, BehaviourType};
 use crate::math::bounds::Bounds;
 use crate::math::vector2::Vector2;
 use sdl3::render::FRect;
-use serde::{Deserialize};
+use serde::{Deserialize, Serialize};
+use crate::actions::Action;
 use crate::game_object::drawable::{DrawLayer, Drawable};
 
 pub type PhysicsVector = Vector2<f32>;
@@ -19,7 +19,7 @@ pub type ObjectMask = u32;
 pub type BoundInfo = (i32, FRect, ObjectMask);
 pub type CollisionInfo = BoundInfo;
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GameObject {
     pub id: i32,
 	#[serde(with = "AssetBounds")]

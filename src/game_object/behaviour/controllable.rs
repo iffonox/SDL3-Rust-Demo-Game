@@ -1,11 +1,11 @@
-use crate::serialization::Action;
 use crate::game_object::{PhysicsVector};
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
 use crate::math::VectorOps;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use crate::actions::Action;
 
-#[derive(Deserialize, Debug, Clone, Copy)]
+#[derive(Deserialize, Serialize, Debug, Clone, Copy)]
 pub struct ControllableBehaviour {
 	pub speed: f32,
 	pub run_speed: f32,
@@ -34,7 +34,7 @@ impl Behaviour for ControllableBehaviour {
 		let mut force = PhysicsVector::default();
 		let mut impulse = PhysicsVector::default();
 
-        let speed = if actions.contains(Action::Sprint) {
+        let speed = if actions.contains(Action::SPRINT) {
             self.run_speed
         } else {
             self.speed
@@ -52,7 +52,7 @@ impl Behaviour for ControllableBehaviour {
 			}
 		}
 
-		if !in_air && actions.contains(Action::Jump) && self.jumping == 0.0 {
+		if !in_air && actions.contains(Action::JUMP) && self.jumping == 0.0 {
 			self.jumping = 0.3;	// 0.3 sec cooldown for jumping; this is just a dirty fix for multi-jumps
 			impulse += PhysicsVector { x: 0.0, y: -self.run_speed };
 		}
@@ -65,9 +65,9 @@ impl Behaviour for ControllableBehaviour {
         //     force += PhysicsVector { x: 0.0, y: 1.0 };
         // }
 
-        if actions.contains(Action::MoveLeft) {
+        if actions.contains(Action::MOVE_LEFT) {
 			force -= PhysicsVector { x: 1.0, y: 0.0 };
-        } else if actions.contains(Action::MoveRight) {
+        } else if actions.contains(Action::MOVE_RIGHT) {
 			force += PhysicsVector { x: 1.0, y: 0.0 };
         }
 

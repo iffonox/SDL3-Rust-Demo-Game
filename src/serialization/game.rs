@@ -1,18 +1,22 @@
 use crate::serialization::AssetId;
 use crate::serialization::font::FontDefinition;
-use crate::serialization::texture::TextureDefinition;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Debug, Clone)]
-pub struct LevelDefinition {
-    pub id: AssetId,
-    pub path: String,
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct AssetDefinition {
+	pub id: AssetId,
+	pub path: String,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+pub type TextureDefinition = AssetDefinition;
+pub type LevelDefinition = AssetDefinition;
+pub type GuiDefinition = AssetDefinition;
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GameData {
     pub fonts: Vec<FontDefinition>,
     pub textures: Vec<TextureDefinition>,
     pub levels: Vec<LevelDefinition>,
+	pub guis: Vec<GuiDefinition>,
     pub debug_font_id: AssetId,
 }
