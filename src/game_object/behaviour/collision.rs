@@ -1,40 +1,49 @@
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
-use sdl3::render::FRect;
+use serde::Deserialize;
+use crate::game_object::{BoundInfo, ObjectMask};
 
+#[derive(Deserialize, Debug, Clone, Copy)]
 pub struct CollisionBehaviour {
-    bounds: FRect,
+	#[serde(default)]
+	pub mask: ObjectMask,
 }
 
 impl CollisionBehaviour {
-    pub fn new(bounds: FRect) -> Self {
-        Self { bounds }
+    pub fn new() -> Self {
+        Self { 
+			mask: ObjectMask::default()
+		}
     }
 }
 
 impl Behaviour for CollisionBehaviour {
     fn tick(&mut self, params: BehaviourParameter, _: f64) -> BehaviourResult {
-        let mut collisions: Vec<(i32, FRect)> = Vec::new();
+        let mut collisions: Vec<BoundInfo> = Vec::new();
 
         let bounds = params.bounds;
 
         for i in 0..params.other_bounds.len() {
-            let (id, rect) = params.other_bounds[i];
+            let (id, rect, mask) = params.other_bounds[i];
 
             if id == params.id {
                 continue;
             }
 
+			if mask != 0 && self.mask != 0 && mask & self.mask == 0 {
+				continue;
+			}
+			
             if rect.intersects(bounds) {
-                collisions.push((id, rect.intersection(bounds)))
+                collisions.push((id, rect.intersection(bounds), mask))
             }
         }
 
         BehaviourResult {
             bounds: None,
             collisions: Some(collisions),
-			force: None,
-			impulse: None,
+            force: None,
+            impulse: None,
         }
     }
 }

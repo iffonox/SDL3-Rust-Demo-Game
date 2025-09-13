@@ -20,24 +20,22 @@
 	"objects": [
 		{
 			"id": 1,
-			"texture_id": 1,
-			"tint_texture": false,
-			"color": {
-				"r": 0,
-				"g": 0,
-				"b": 0,
-				"a": 0
-			},
 			"bounds": {
 				"x": 10,
 				"y": 10,
 				"w": 64,
 				"h": 64
 			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"texture_id": 1,
+				"tint_texture": false
+			},
 			"behaviours": [
 				{
 					"type": "Dvd",
-					"use_world_bounds": true,
 					"speed": {
 						"type": "Random",
 						"min": {
@@ -57,24 +55,22 @@
 		},
 		{
 			"id": 2,
-			"texture_id": 2,
-			"tint_texture": false,
-			"color": {
-				"r": 0,
-				"g": 0,
-				"b": 0,
-				"a": 0
-			},
 			"bounds": {
 				"x": 10,
 				"y": 10,
 				"w": 64,
 				"h": 64
 			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"texture_id": 2,
+				"tint_texture": false
+			},
 			"behaviours": [
 				{
 					"type": "Dvd",
-					"use_world_bounds": true,
 					"speed": {
 						"type": "Random",
 						"min": {
@@ -94,24 +90,22 @@
 		},
 		{
 			"id": 3,
-			"texture_id": 3,
-			"tint_texture": false,
-			"color": {
-				"r": 0,
-				"g": 0,
-				"b": 0,
-				"a": 0
-			},
 			"bounds": {
 				"x": 10,
 				"y": 10,
 				"w": 64,
 				"h": 64
 			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"texture_id": 3,
+				"tint_texture": false
+			},
 			"behaviours": [
 				{
 					"type": "Dvd",
-					"use_world_bounds": true,
 					"speed": {
 						"type": "Random",
 						"min": {
@@ -131,17 +125,22 @@
 		},
 		{
 			"id": 4,
-			"color": {
-				"r": 120,
-				"g": 70,
-				"b": 26,
-				"a": 0
-			},
 			"bounds": {
 				"x": 0,
 				"y": 580,
 				"w": 800,
 				"h": 20
+			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"color": {
+					"r": 120,
+					"g": 70,
+					"b": 26,
+					"a": 0
+				}
 			},
 			"behaviours": [
 				{
@@ -151,17 +150,22 @@
 		},
 		{
 			"id": 5,
-			"color": {
-				"r": 120,
-				"g": 70,
-				"b": 26,
-				"a": 0
-			},
 			"bounds": {
 				"x": 0,
 				"y": 0,
 				"w": 20,
 				"h": 600
+			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"color": {
+					"r": 120,
+					"g": 70,
+					"b": 26,
+					"a": 0
+				}
 			},
 			"behaviours": [
 				{
@@ -171,17 +175,22 @@
 		},
 		{
 			"id": 6,
-			"color": {
-				"r": 120,
-				"g": 70,
-				"b": 26,
-				"a": 0
-			},
 			"bounds": {
 				"x": 780,
 				"y": 0,
 				"w": 20,
 				"h": 600
+			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"color": {
+					"r": 120,
+					"g": 70,
+					"b": 26,
+					"a": 0
+				}
 			},
 			"behaviours": [
 				{
@@ -191,17 +200,22 @@
 		},
 		{
 			"id": 7,
-			"color": {
-				"r": 116,
-				"g": 116,
-				"b": 116,
-				"a": 0
-			},
 			"bounds": {
 				"x": 120,
 				"y": 490,
 				"w": 100,
 				"h": 20
+			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"color": {
+					"r": 116,
+					"g": 116,
+					"b": 116,
+					"a": 0
+				}
 			},
 			"behaviours": [
 				{
@@ -211,17 +225,22 @@
 		},
 		{
 			"id": 8,
-			"color": {
-				"r": 116,
-				"g": 116,
-				"b": 116,
-				"a": 0
-			},
 			"bounds": {
 				"x": 200,
 				"y": 440,
 				"w": 100,
 				"h": 20
+			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"color": {
+					"r": 116,
+					"g": 116,
+					"b": 116,
+					"a": 0
+				}
 			},
 			"behaviours": [
 				{
@@ -231,17 +250,22 @@
 		},
 		{
 			"id": 9,
-			"color": {
-				"r": 116,
-				"g": 116,
-				"b": 116,
-				"a": 0
-			},
 			"bounds": {
 				"x": 300,
 				"y": 360,
 				"w": 100,
 				"h": 20
+			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"color": {
+					"r": 116,
+					"g": 116,
+					"b": 116,
+					"a": 0
+				}
 			},
 			"behaviours": [
 				{
@@ -251,17 +275,22 @@
 		},
 		{
 			"id": 10,
-			"color": {
-				"r": 116,
-				"g": 116,
-				"b": 116,
-				"a": 0
-			},
 			"bounds": {
 				"x": 400,
 				"y": 280,
 				"w": 100,
 				"h": 20
+			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"color": {
+					"r": 116,
+					"g": 116,
+					"b": 116,
+					"a": 0
+				}
 			},
 			"behaviours": [
 				{
@@ -271,17 +300,22 @@
 		},
 		{
 			"id": 11,
-			"color": {
-				"r": 116,
-				"g": 116,
-				"b": 116,
-				"a": 0
-			},
 			"bounds": {
 				"x": 500,
 				"y": 200,
 				"w": 100,
 				"h": 20
+			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"color": {
+					"r": 116,
+					"g": 116,
+					"b": 116,
+					"a": 0
+				}
 			},
 			"behaviours": [
 				{
@@ -291,18 +325,23 @@
 		},
 		{
 			"id": 12,
-			"color": {
-				"r": 116,
-				"g": 116,
-				"b": 116,
-				"a": 0
-			},
 			"bounds": {
 				"x": 600,
 				"y": 120,
 				"w": 100,
 				"h": 20
 			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"color": {
+					"r": 116,
+					"g": 116,
+					"b": 116,
+					"a": 0
+				}
+			},
 			"behaviours": [
 				{
 					"type": "Collision"
@@ -311,18 +350,23 @@
 		},
 		{
 			"id": 13,
-			"color": {
-				"r": 116,
-				"g": 116,
-				"b": 116,
-				"a": 0
-			},
 			"bounds": {
 				"x": 20,
 				"y": 520,
 				"w": 20,
 				"h": 20
 			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"color": {
+					"r": 116,
+					"g": 116,
+					"b": 116,
+					"a": 0
+				}
+			},
 			"behaviours": [
 				{
 					"type": "Collision"
@@ -331,26 +375,30 @@
 		},
 		{
 			"id": 13,
-			"color": {
-				"r": 255,
-				"g": 223,
-				"b": 8,
-				"a": 0
-			},
 			"bounds": {
 				"x": 10,
 				"y": 120,
 				"w": 80,
 				"h": 20
 			},
+			"drawable": {
+				"z": {
+					"Foreground": 1
+				},
+				"color": {
+					"r": 255,
+					"g": 223,
+					"b": 8,
+					"a": 0
+				}
+			},
 			"behaviours": [
 				{
 					"type": "Dvd",
-					"use_world_bounds": true,
 					"speed": {
 						"type": "Fixed",
-							"x": 30,
-							"y": 0
+						"x": 30,
+						"y": 0
 					}
 				},
 				{

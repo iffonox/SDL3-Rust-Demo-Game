@@ -1,6 +1,7 @@
-use crate::serialization::behaviour::BehaviourType;
-use crate::serialization::{AssetBounds, AssetColor, AssetId, AssetPosition, AssetSize};
+use crate::serialization::{AssetBounds, AssetId, AssetPosition, AssetSize};
+use sdl3::render::FRect;
 use serde::Deserialize;
+use crate::game_object::GameObject;
 
 #[derive(Deserialize, Debug)]
 pub struct Player {
@@ -9,20 +10,11 @@ pub struct Player {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct LevelObject {
-    pub id: AssetId,
-    pub tint_texture: Option<bool>,
-    pub texture_id: Option<AssetId>,
-    pub color: Option<AssetColor>,
-    pub bounds: AssetBounds,
-    pub behaviours: Vec<BehaviourType>,
-}
-
-#[derive(Deserialize, Debug)]
 pub struct LevelData {
     pub name: String,
     pub start: AssetPosition,
-    pub bounds: Option<AssetBounds>,
+    #[serde(with = "AssetBounds")]
+    pub bounds: FRect,
     pub player: Player,
-    pub objects: Vec<LevelObject>,
+    pub objects: Vec<GameObject>,
 }

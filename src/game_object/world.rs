@@ -1,15 +1,12 @@
-use crate::game_object::behaviour::Behaviour;
 use crate::game_object::behaviour::collision::CollisionBehaviour;
 use crate::game_object::behaviour::controllable::ControllableBehaviour;
-use crate::game_object::behaviour::dvd::DvdBehaviour;
-use crate::game_object::{Bounds, Drawable, GameObject, PhysicsVector};
+use crate::game_object::behaviour::physics::PhysicsBehaviour;
+use crate::game_object::behaviour::{BehaviourType};
+use crate::game_object::{BoundInfo, Bounds, DrawLayer, Drawable, GameObject, PhysicsVector};
 use crate::serialization::Action;
-use crate::serialization::behaviour::BehaviourType;
-use crate::serialization::behaviour::BehaviourType::Collision;
 use crate::serialization::level::LevelData;
 use sdl3::pixels::Color;
 use sdl3::render::FRect;
-use crate::game_object::behaviour::physics::PhysicsBehaviour;
 
 #[derive(PartialEq, Eq, Debug, Default)]
 pub enum BorderType {
@@ -49,12 +46,12 @@ impl World {
     }
 
     pub fn load_level(&mut self, level_data: &LevelData) {
-        if let Some(bounds) = level_data.bounds {
-            self.bounds = bounds.into();
-        }
+		let game_objects = &level_data.objects;
+		self.game_objects = game_objects.clone();
 
-        let player_data = &level_data.player;
+		self.bounds = level_data.bounds;
 
+		let player_data = &level_data.player;
         let mut player = GameObject::new(1);
         player.bounds = FRect {
             x: level_data.start.x,
@@ -63,94 +60,42 @@ impl World {
             h: player_data.size.h,
         };
         player.drawable = Some(Drawable {
-            z: 100,
-            color: Color::MAGENTA,
-            texture: Some(player_data.texture_id),
+            z: DrawLayer::Foreground(100),
+            color: Some(Color::MAGENTA),
+            texture_id: Some(player_data.texture_id),
             tint_texture: true,
         });
         player
             .behaviours
-            .push(Box::new(CollisionBehaviour::new(player.bounds)));
-        player.behaviours.push(Box::new(ControllableBehaviour::new(
+            .push(BehaviourType::Collision(CollisionBehaviour::new()));
+        player
+            .behaviours
+            .push(BehaviourType::Controllable(ControllableBehaviour::new(
+                5.0,
+                15.0,
+            )));
+        player.behaviours.push(BehaviourType::Physics(PhysicsBehaviour::new(
             self.bounds,
-            5.0,
-            15.0,
+            PhysicsVector::default(),
+            2.0,
         )));
-		player.behaviours.push(Box::new(PhysicsBehaviour::new(
-			self.bounds,
-			PhysicsVector::default(),
-			2.0,
-		)));
 
         self.add_game_object(player);
-
-        let game_objects = &level_data.objects;
-
-        for i in 0..game_objects.len() {
-            let data = &game_objects[i];
-            let mut game_object = GameObject::new(i as i32 + 10);
-
-            game_object.bounds = data.bounds.into();
-            game_object.drawable = Some(Drawable {
-                z: 50,
-                color: data
-                    .color
-                    .map(|a| a.into())
-                    .unwrap_or_else(|| Color::MAGENTA),
-                texture: data.texture_id,
-                tint_texture: data.tint_texture.unwrap_or_default(),
-            });
-
-            let behaviours = &data.behaviours;
-
-            for j in 0..behaviours.len() {
-                let behaviour_data = &behaviours[j];
-
-                if let Some(behaviour) =
-                    Self::build_behaviour(behaviour_data, self.bounds)
-                {
-                    game_object.behaviours.push(behaviour);
-                }
-            }
-
-            self.add_game_object(game_object);
-        }
-    }
-
-    fn build_behaviour(
-        behaviour_data: &BehaviourType,
-        world_bounds: FRect,
-    ) -> Option<Box<dyn Behaviour>> {
-        let behaviour: Option<Box<dyn Behaviour>> = match behaviour_data {
-            BehaviourType::Dvd { bounds, speed, .. } => {
-                let bounds: FRect = bounds.map(|b| b.into()).unwrap_or_else(|| world_bounds);
-                let speed = PhysicsVector::from(*speed);
-
-                Some(Box::new(DvdBehaviour::new(bounds, speed)))
-            }
-            Collision { bounds, .. } => {
-                let bounds: FRect = bounds.map(|b| b.into()).unwrap_or_else(|| world_bounds);
-
-                Some(Box::new(CollisionBehaviour::new(bounds)))
-            }
-            _ => None,
-        };
-        behaviour
     }
 
     fn add_game_object(&mut self, object: GameObject) {
         self.game_objects.push(object);
         self.game_objects
-            .sort_by_key(|b| b.drawable.as_ref().map(|d| d.z).unwrap_or_default());
+            .sort_by_key(|b| b.drawable.as_ref().map(|d| d.z).unwrap());
     }
 
     pub fn tick(&mut self, delta_t: f64, actions: Action) {
-        let rects: Vec<(i32, FRect)> = self.game_objects.iter().map(|o| (o.id, o.bounds)).collect();
+        let rects: Vec<BoundInfo> = self.game_objects.iter().map(|o| (o.id, o.bounds, o.mask)).collect();
 
         for i in 0..self.game_objects.len() {
             let game_object = &mut self.game_objects[i];
 
-            game_object.tick(delta_t, actions, &rects);
+            game_object.tick(delta_t, self.bounds, actions, &rects);
         }
     }
 

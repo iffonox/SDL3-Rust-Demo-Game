@@ -24,6 +24,7 @@ use sdl3::video::WindowContext;
 
 static FPS_LIMIT: u64 = 60;
 static MIN_FRAME_TIME: u64 = 1_000u64 / FPS_LIMIT;
+static WINDOW_TITLE: &str = "rust-sdl3 demo";
 
 pub struct Game<'a> {
     keymap: HashMap<Keycode, Action>,
@@ -65,7 +66,7 @@ impl<'a> Game<'a> {
         let video_subsystem = sdl_context.video().unwrap();
 
         let window = video_subsystem
-            .window("rust-sdl3 demo", width, height)
+            .window(WINDOW_TITLE, width, height)
             .position_centered()
             .build()
             .unwrap();
@@ -190,8 +191,15 @@ impl<'a> Game<'a> {
     }
 
     fn init(&mut self) {
+		let level = self.level_data.get(0).expect("no level data available");
+		let mut title = WINDOW_TITLE.to_owned();
+		title.push_str(" - ");
+		title.push_str(&level.name);
+
+		self.main_canvas.window_mut().set_title(&title).expect("setting window title failed");
+
         self.world
-            .load_level(&self.level_data.get(0).expect("no level data available"));
+            .load_level(level);
     }
 
     pub fn run(&mut self) {
@@ -273,20 +281,20 @@ impl<'a> Game<'a> {
         let drawables = self.world.get_drawables();
 
         for (rect, drawable) in drawables {
-            if let Some(texture_index) = drawable.texture
+            if let Some(texture_index) = drawable.texture_id
                 && let Some(surface) = self.surfaces.get(&texture_index)
             {
                 if let Ok(mut texture) = self.main_texture_creator.create_texture_from_surface(surface) {
-                    if drawable.tint_texture {
-                        texture.set_color_mod(drawable.color.r, drawable.color.g, drawable.color.b);
+                    if let Some(color) = drawable.color && drawable.tint_texture {
+                        texture.set_color_mod(color.r, color.g, color.b);
                     }
 
                     self.main_canvas
                         .copy(&texture, None, rect)
                         .expect("texture error");
                 }
-            } else {
-                self.main_canvas.set_draw_color(drawable.color);
+            } else if let Some(color) = drawable.color {
+                self.main_canvas.set_draw_color(color);
                 self.main_canvas.fill_rect(rect).expect("draw error");
             }
 
