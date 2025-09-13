@@ -1,46 +1,56 @@
-use crate::serialization::AssetBounds;
+use crate::game_object::behaviour::_de_optional_rect;
 use crate::game_object::PhysicsVector;
-use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
+use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult, BehaviourSpeed};
 use crate::math::bounds::Bounds;
 use sdl3::render::FRect;
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 
 #[derive(Deserialize, Debug, Clone, Copy)]
 pub struct DvdBehaviour {
-	#[serde(with = "AssetBounds")]
-    bounds: FRect,
-    speed: PhysicsVector,
+	#[serde(default, deserialize_with = "_de_optional_rect")]
+    pub bounds: Option<FRect>,
+	#[serde(deserialize_with = "_de_behavior_speed")]
+    pub speed: PhysicsVector,
+}
+
+fn _de_behavior_speed<'de, D>(deserializer: D) -> Result<PhysicsVector, D::Error> where D: Deserializer<'de>
+{
+	let res = BehaviourSpeed::deserialize(deserializer);
+
+	match res {
+		Ok(speed) => Ok(PhysicsVector::from(speed)),
+		Err(err) => Err(err)
+	}
 }
 
 impl DvdBehaviour {
     pub fn new(bounds: FRect, speed: PhysicsVector) -> Self {
-        Self { bounds, speed }
+        Self { bounds: Some(bounds), speed }
     }
 }
 
 impl Behaviour for DvdBehaviour {
     fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult {
-        let sec = delta_t as f32;
         let center = params.bounds.center();
         let mut position = PhysicsVector::from(center);
+		let clamp_bounds = self.bounds.unwrap_or(params.world_bounds);
 
-        position = position + self.speed * sec;
+		position += self.speed * delta_t as f32;
 
-        if position.x < self.bounds.left() {
+        if position.x < clamp_bounds.left() {
             self.speed.x = -self.speed.x;
-            position.x = self.bounds.left();
-        } else if position.x > self.bounds.right() {
+        } else if position.x > clamp_bounds.right() {
             self.speed.x = -self.speed.x;
-            position.x = self.bounds.right();
         }
 
-        if position.y < self.bounds.top() {
+        if position.y < clamp_bounds.top() {
             self.speed.y = -self.speed.y;
-            position.y = self.bounds.top();
-        } else if position.y > self.bounds.bottom() {
+        } else if position.y > clamp_bounds.bottom() {
             self.speed.y = -self.speed.y;
-            position.y = self.bounds.bottom();
         }
+
+		position.x = position.x.clamp(clamp_bounds.left(), clamp_bounds.right());
+		position.y = position.y.clamp(clamp_bounds.top(), clamp_bounds.bottom());
 
         let mut bounds = params.bounds;
 

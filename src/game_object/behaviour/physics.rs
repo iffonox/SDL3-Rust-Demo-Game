@@ -1,4 +1,4 @@
-use crate::serialization::AssetBounds;
+use crate::game_object::behaviour::_de_optional_rect;
 use crate::game_object::PhysicsVector;
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
@@ -8,15 +8,15 @@ use crate::math::VectorOps;
 
 #[derive(Deserialize, Debug, Clone, Copy)]
 pub struct PhysicsBehaviour {
-	#[serde(with = "AssetBounds")]
-    bounds: FRect,
-    speed: PhysicsVector,
-	mass: f32,
+	#[serde(default, deserialize_with = "_de_optional_rect")]
+    pub bounds: Option<FRect>,
+    pub speed: PhysicsVector,
+	pub mass: f32,
 }
 
 impl PhysicsBehaviour {
     pub fn new(bounds: FRect, speed: PhysicsVector, mass: f32) -> Self {
-        Self { bounds, speed, mass }
+        Self { bounds: Some(bounds), speed, mass }
     }
 }
 
@@ -33,8 +33,7 @@ static AIR_RESISTANCE_COEF: f32 = 0.01;
 impl Behaviour for PhysicsBehaviour {
     fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult {
         let sec = delta_t as f32;
-		let bounds = params.bounds;
-        let center = bounds.center();
+        let center = params.bounds.center();
         let mut position = PhysicsVector::from(center) * METERS_PER_PIXEL;
 		let speed_magnitude = self.speed.len();
 		let speed_anti_normal = -self.speed.normal();
@@ -53,7 +52,7 @@ impl Behaviour for PhysicsBehaviour {
 		self.speed += acceleration * sec;
 
 		for i in 0..params.collisions.len() {
-			let (_, collision) = params.collisions[i];
+			let (_, collision, _) = params.collisions[i];
 			let col_center = collision.center();
 
 			if collision.w > collision.h {
@@ -78,8 +77,11 @@ impl Behaviour for PhysicsBehaviour {
 		position += self.speed * sec;
 
 		position *= PIXELS_PER_METER;
-		position.x = position.x.clamp(self.bounds.left(), self.bounds.right());
-		position.y = position.y.clamp(self.bounds.top(), self.bounds.bottom());
+
+		let clamp_bounds = self.bounds.unwrap_or(params.world_bounds);
+
+		position.x = position.x.clamp(clamp_bounds.left(), clamp_bounds.right());
+		position.y = position.y.clamp(clamp_bounds.top(), clamp_bounds.bottom());
 
         let mut bounds = params.bounds;
 

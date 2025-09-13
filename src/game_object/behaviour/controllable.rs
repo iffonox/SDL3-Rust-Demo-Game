@@ -1,31 +1,24 @@
-use crate::serialization::AssetBounds;
 use crate::serialization::Action;
 use crate::game_object::{PhysicsVector};
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
-use sdl3::render::FRect;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone, Copy)]
 pub struct ControllableBehaviour {
-	#[serde(with = "AssetBounds")]
-    bounds: FRect,
-    speed: f32,
-    run_speed: f32,
-	jumping: f32,
-	can_jump: bool,
-	velocity: PhysicsVector,
-	acceleration: PhysicsVector,
+	pub speed: f32,
+	pub run_speed: f32,
+	pub jumping: f32,
+	pub velocity: PhysicsVector,
+	pub acceleration: PhysicsVector,
 }
 
 impl ControllableBehaviour {
-    pub fn new(bounds: FRect, speed: f32, run_speed: f32) -> Self {
+    pub fn new(speed: f32, run_speed: f32) -> Self {
         Self {
-            bounds,
             speed,
             run_speed,
 			jumping: 0.0,
-			can_jump: true,
 			velocity: PhysicsVector::default(),
 			acceleration: PhysicsVector::default(),
         }
@@ -49,7 +42,7 @@ impl Behaviour for ControllableBehaviour {
 		let mut in_air = true;
 
 		for i in 0..params.collisions.len() {
-			let (_, collision) = params.collisions[i];
+			let (_, collision, _) = params.collisions[i];
 
 			if collision.w > collision.h && collision.top() > bounds.center().y {
 				in_air = false;

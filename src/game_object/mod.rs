@@ -1,63 +1,52 @@
 pub mod behaviour;
 pub mod world;
+pub mod drawable;
 
 extern crate sdl3;
 
-use crate::serialization::{Action, AssetId};
-use crate::game_object::behaviour::{Behaviour, BehaviourParameter};
+use crate::serialization::AssetBounds;
+use crate::serialization::{Action};
+use crate::game_object::behaviour::{BehaviourParameter, BehaviourType};
 use crate::math::bounds::Bounds;
 use crate::math::vector2::Vector2;
-use sdl3::pixels::Color;
 use sdl3::render::FRect;
+use serde::{Deserialize};
+use crate::game_object::drawable::{DrawLayer, Drawable};
 
 pub type PhysicsVector = Vector2<f32>;
 
-pub struct Drawable {
-    pub z: i32,
-    pub color: Color,
-    pub texture: Option<AssetId>, // index of the texture
-    pub tint_texture: bool,       // if the texture should be tinted by the color
-}
+pub type ObjectMask = u32;
+pub type BoundInfo = (i32, FRect, ObjectMask);
+pub type CollisionInfo = BoundInfo;
 
-impl Default for Drawable {
-    fn default() -> Self {
-        Self {
-            z: i32::default(),
-            color: Color::WHITE,
-            texture: None,
-            tint_texture: bool::default(),
-        }
-    }
-}
-
-pub struct ActionHandler {}
-
+#[derive(Deserialize, Debug, Clone)]
 pub struct GameObject {
     pub id: i32,
+	#[serde(with = "AssetBounds")]
     pub bounds: FRect,
-
+	#[serde(default)]
+	pub mask: ObjectMask,
     pub drawable: Option<Drawable>,
-    pub action_handler: Option<ActionHandler>,
-    pub behaviours: Vec<Box<dyn Behaviour>>,
+    pub behaviours: Vec<BehaviourType>,
 }
 
 impl GameObject {
     pub fn new(id: i32) -> Self {
         Self {
             id,
-            bounds: FRect {
+			bounds: FRect {
                 x: f32::default(),
                 y: f32::default(),
                 w: f32::default(),
                 h: f32::default(),
             },
+			mask: ObjectMask::default(),
             drawable: Some(Drawable::default()),
-            action_handler: None,
             behaviours: Vec::new(),
         }
     }
 
-    pub fn tick(&mut self, delta_t: f64, actions: Action, other_bounds: &Vec<(i32, FRect)>) {
+    pub fn tick(&mut self, delta_t: f64, world_bounds: FRect, actions: Action, other_bounds: &Vec<BoundInfo>) {
         let behaviours = &mut self.behaviours;
         let mut bounds = self.bounds;
 		let mut collisions = Vec::new();
@@ -65,13 +54,14 @@ impl GameObject {
 		let mut impulse = None;
 
         for i in 0..behaviours.len() {
-            let behaviour = behaviours[i].as_mut();
+            let behaviour = &mut behaviours[i];
 
             let result = behaviour.tick(
                 BehaviourParameter {
                     id: self.id,
                     bounds,
                     actions,
+					world_bounds,
                     other_bounds,
 					collisions: &collisions,
 					force,

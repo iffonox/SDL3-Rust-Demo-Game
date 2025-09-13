@@ -137,7 +137,6 @@ impl UiElement {
 		match self {
 			UiElement::Box(r#box) => { Some(r#box.id) },
 			UiElement::Label(label) => { Some(label.id) },
-			_ => None
 		}
 	}
 }
