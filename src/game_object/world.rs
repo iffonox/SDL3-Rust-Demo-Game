@@ -52,7 +52,7 @@ impl World {
 		self.bounds = level_data.bounds;
 
 		let player_data = &level_data.player;
-        let mut player = GameObject::new(1);
+        let mut player = GameObject::new(-1);
         player.bounds = FRect {
             x: level_data.start.x,
             y: level_data.start.y,

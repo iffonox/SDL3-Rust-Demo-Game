@@ -2,7 +2,6 @@ use crate::serialization::Action;
 use crate::game_object::{PhysicsVector};
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
-use sdl3::render::FRect;
 use crate::math::VectorOps;
 use serde::Deserialize;
 
@@ -72,7 +71,9 @@ impl Behaviour for ControllableBehaviour {
 			force += PhysicsVector { x: 1.0, y: 0.0 };
         }
 
-		force = force.normal() * speed;
+		if force.len() != 0.0 {
+			force = force.normal() * speed;
+		}
 
         BehaviourResult {
             bounds: None,

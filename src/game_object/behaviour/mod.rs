@@ -46,7 +46,7 @@ impl From<PhysicsVector> for BehaviourSpeed {
 	}
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct BehaviourParameter<'a> {
     pub id: AssetId,
     pub bounds: FRect,
@@ -58,6 +58,7 @@ pub struct BehaviourParameter<'a> {
 	pub impulse: Option<PhysicsVector>,
 }
 
+#[derive(Debug, Clone)]
 pub struct BehaviourResult {
     pub bounds: Option<FRect>,
     pub collisions: Option<Vec<CollisionInfo>>,

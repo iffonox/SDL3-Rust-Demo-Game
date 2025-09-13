@@ -3,6 +3,7 @@ use crate::game_object::PhysicsVector;
 use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
 use sdl3::render::FRect;
+use sdl3::sys::everything::SDL_STANDARD_GRAVITY;
 use serde::Deserialize;
 use crate::math::VectorOps;
 
@@ -25,7 +26,7 @@ static METERS_PER_PIXEL: f32 = 1.0/PIXELS_PER_METER;
 
 static GRAVITY: PhysicsVector = PhysicsVector {
 	x: 0.0,
-	y: 10.0,
+	y: SDL_STANDARD_GRAVITY,
 };
 
 static AIR_RESISTANCE_COEF: f32 = 0.01;
@@ -45,8 +46,6 @@ impl Behaviour for PhysicsBehaviour {
 		let mut acceleration = GRAVITY;
 		acceleration += air_resistance_accel;
 		acceleration += force_accel;
-
-		assert!(!position.x.is_nan());
 
 		self.speed += impulse;
 		self.speed += acceleration * sec;

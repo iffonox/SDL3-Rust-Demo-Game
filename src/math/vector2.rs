@@ -238,9 +238,12 @@ mod tests {
 	#[test]
 	fn test_normal() {
 		let v1 = Vector2 { x: 3.0, y: 4.0 };
+		let v2 = Vector2 { x: -3.0, y: -4.0 };
 
-		let res = v1.normal();
+		let res1 = v1.normal();
+		let res2 = v2.normal();
 
-		assert_eq!(1.0, res.len());
+		assert_eq!(1.0, res1.len());
+		assert_eq!(1.0, res2.len());
 	}
 }
