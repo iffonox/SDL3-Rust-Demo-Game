@@ -7,7 +7,7 @@ use crate::serialization::level::LevelData;
 use crate::serialization::{AssetId};
 use sdl3::Sdl;
 use sdl3::event::Event;
-use sdl3::keyboard::{Keycode, Mod};
+use sdl3::keyboard::{Keycode};
 use sdl3::mouse::MouseButton;
 use sdl3::pixels::{Color, PixelFormat, PixelFormatEnum};
 use sdl3::render::{FPoint, FRect, SurfaceCanvas, TextureCreator, WindowCanvas};
@@ -24,9 +24,10 @@ use std::thread::sleep;
 use std::time::Duration;
 use crate::actions::Action;
 use crate::mouse::{Mouse, MouseButtonState};
+use crate::settings::{Settings};
 
-static FPS_LIMIT: u64 = 60;
-static MIN_FRAME_TIME: u64 = 1_000u64 / FPS_LIMIT;
+type MilliSeconds = u64;
+
 static WINDOW_TITLE: &str = "rust-sdl3 demo";
 
 #[derive(Debug, Copy, Clone, Default)]
@@ -42,7 +43,6 @@ struct FrameData {
 #[derive(Debug, Copy, Clone, Default)]
 struct SystemState {
 	should_quit: bool,
-	should_wait_after_frame: bool,
 	should_show_debug: bool,
 	menu_open: bool,
 }
@@ -63,16 +63,17 @@ pub struct Game<'a> {
     level_data: Vec<LevelData>,
     gui_data: Vec<UiElement>,
 	performance_frequency: f64,
+	settings: Settings,
 	frame_data: FrameData,
     window_bounds: FRect,
 	mouse: Mouse,
-	system_state: SystemState
+	system_state: SystemState,
+	min_frame_time: MilliSeconds
 }
 
 impl<'a> Game<'a> {
     pub fn new(
-        width: u32,
-        height: u32,
+        settings: Settings,
         game_data: GameData,
         sdl_context: &'a Sdl,
         ttf_context: &'a Sdl3TtfContext,
@@ -80,7 +81,7 @@ impl<'a> Game<'a> {
         let video_subsystem = sdl_context.video().unwrap();
 
         let window = video_subsystem
-            .window(WINDOW_TITLE, width, height)
+            .window(WINDOW_TITLE, settings.width as u32, settings.height as u32)
             .position_centered()
             .build()
             .unwrap();
@@ -97,7 +98,7 @@ impl<'a> Game<'a> {
         let gui_data = Self::load_definitions(&game_data.guis);
 
         let menu_canvas = SurfaceCanvas::from_surface(
-            Surface::new(width, height, PixelFormat::from(PixelFormatEnum::ARGB8888))
+            Surface::new(settings.width as u32, settings.height as u32, PixelFormat::from(PixelFormatEnum::ARGB8888))
                 .expect("Surface creation error"),
         )
         .expect("Surface creation error");
@@ -105,6 +106,8 @@ impl<'a> Game<'a> {
         let main_texture_creator = canvas.texture_creator();
 
         let menu_texture_creator = menu_canvas.texture_creator();
+
+		let min_frame_time: MilliSeconds =  1_000u64 / settings.frame_limit as u64;
 
         Self {
             keymap,
@@ -115,7 +118,7 @@ impl<'a> Game<'a> {
             main_texture_creator,
             menu_texture_creator,
             surfaces,
-            world: World::new(width as f32, height as f32),
+            world: World::new(settings.width as f32, settings.height as f32),
             sdl_context,
             main_canvas: canvas,
             menu_canvas,
@@ -123,11 +126,12 @@ impl<'a> Game<'a> {
             performance_frequency: performance_frequency() as f64,
             bg_color: Color::WHITE,
 			frame_data: FrameData::default(),
+			settings,
             window_bounds: FRect {
                 x: 0.0,
                 y: 0.0,
-                w: width as f32,
-                h: height as f32,
+                w: settings.width as f32,
+                h: settings.height as f32,
             },
 			mouse: Mouse {
 				buttons:  MouseButtonState::NONE,
@@ -135,10 +139,10 @@ impl<'a> Game<'a> {
 			},
 			system_state: SystemState {
 				should_quit: false,
-				should_wait_after_frame: true,
 				should_show_debug: false,
 				menu_open: false,
-			}
+			},
+			min_frame_time
         }
     }
 
@@ -321,7 +325,7 @@ impl<'a> Game<'a> {
 
         if self.actions.contains(Action::FPS_LIMIT) {
             self.actions &= Action::FPS_LIMIT.not();
-            self.system_state.should_wait_after_frame = !self.system_state.should_wait_after_frame
+            self.settings.frame_limit_active = !self.settings.frame_limit_active
         }
 
         if self.actions.contains(Action::DEBUG) {
@@ -518,12 +522,12 @@ impl<'a> Game<'a> {
             self.frame_data.fps_frame_count = 0;
         }
 
-        if !self.system_state.should_wait_after_frame {
+        if !self.settings.frame_limit_active {
             return;
         }
 
-        if self.frame_data.frame_time < MIN_FRAME_TIME {
-            let wait_time = (MIN_FRAME_TIME - self.frame_data.frame_time) * 1_000_000;
+        if self.frame_data.frame_time < self.min_frame_time {
+            let wait_time = (self.min_frame_time - self.frame_data.frame_time) * 1_000_000;
 
             sleep(Duration::new(0, wait_time as u32));
         }
@@ -588,7 +592,7 @@ impl<'a> Game<'a> {
         let ft_text = format!("frame_time: {0:.2}ms", self.frame_data.frame_time);
         let ft_rect = self.render_msg(&ft_text, FPoint::new(fn_rect.x, fn_rect.bottom()));
 
-        let fw_text = format!("fps_limit: {}", self.system_state.should_wait_after_frame);
+        let fw_text = format!("fps_limit: {}", self.settings.frame_limit_active);
         let fw_rect = self.render_msg(&fw_text, FPoint::new(ft_rect.x, ft_rect.bottom()));
 
         let fps_text = format!("fps: {0:.2}", self.frame_data.fps);
