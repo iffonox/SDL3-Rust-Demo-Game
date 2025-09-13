@@ -14,7 +14,7 @@ pub trait Bounds {
 
     fn set_center<T: Into<FPoint>>(&mut self, position: T);
 
-    fn is_inside(&self, point: FPoint) -> bool {
+    fn contains(&self, point: FPoint) -> bool {
         let top = self.top();
         let bottom = self.bottom();
         let left = self.left();
@@ -156,12 +156,12 @@ mod tests {
         let p5 = FPoint { x: 100.0, y: 0.0 };
         let p6 = FPoint { x: -10.0, y: 0.0 };
 
-        assert!(bounds.is_inside(p1));
-        assert!(bounds.is_inside(p2));
-        assert!(bounds.is_inside(p3));
-        assert!(!bounds.is_inside(p4));
-        assert!(!bounds.is_inside(p5));
-        assert!(!bounds.is_inside(p6));
+        assert!(bounds.contains(p1));
+        assert!(bounds.contains(p2));
+        assert!(bounds.contains(p3));
+        assert!(!bounds.contains(p4));
+        assert!(!bounds.contains(p5));
+        assert!(!bounds.contains(p6));
     }
 
     #[test]
@@ -179,12 +179,12 @@ mod tests {
         let p5 = FPoint { x: 100.0, y: 0.0 };
         let p6 = FPoint { x: -10.0, y: 0.0 };
 
-        assert!(bounds.is_inside(p1));
-        assert!(bounds.is_inside(p2));
-        assert!(bounds.is_inside(p3));
-        assert!(!bounds.is_inside(p4));
-        assert!(!bounds.is_inside(p5));
-        assert!(!bounds.is_inside(p6));
+        assert!(bounds.contains(p1));
+        assert!(bounds.contains(p2));
+        assert!(bounds.contains(p3));
+        assert!(!bounds.contains(p4));
+        assert!(!bounds.contains(p5));
+        assert!(!bounds.contains(p6));
     }
 
     #[test]

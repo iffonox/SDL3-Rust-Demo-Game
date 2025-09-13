@@ -1,3 +1,4 @@
+use crate::serialization::AssetPosition;
 use bitmask_enum::bitmask;
 use sdl3::render::FPoint;
 use serde::{Deserialize, Serialize};
@@ -11,7 +12,18 @@ pub enum MouseButtonState {
 	MIDDLE_BUTTON = 0x0004,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct Mouse {
 	pub buttons: MouseButtonState,
+	#[serde(with = "AssetPosition")]
 	pub pos: FPoint
+}
+
+impl Default for Mouse {
+	fn default() -> Self {
+		Self {
+			buttons: MouseButtonState::NONE,
+			pos: FPoint { x: 0.0, y: 0.0 }
+		}
+	}
 }

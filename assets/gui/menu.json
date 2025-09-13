@@ -1,5 +1,4 @@
 {
-	"type": "Box",
 	"id": 1,
 	"bounds": {
 		"x": 0,
@@ -16,9 +15,11 @@
 		"b": 0,
 		"a": 127
 	},
+	"element_type": {
+		"type": "Box"
+	},
 	"children": [
 		{
-			"type": "Label",
 			"id": 2,
 			"bounds": {
 				"x": 300,
@@ -35,26 +36,37 @@
 				"b": 255,
 				"a": 255
 			},
-			"format": {
-				"font_id": 1,
-				"color": {
-					"r": 0,
-					"g": 0,
-					"b": 0,
-					"a": 0
+			"element_type": {
+				"type": "Label",
+				"format": {
+					"font_id": 1,
+					"color": {
+						"r": 0,
+						"g": 0,
+						"b": 0,
+						"a": 255
+					},
+					"justify": "Center",
+					"align": "Center"
 				},
-				"justify": "Center",
-				"align": "Center"
+				"text": "Resume"
 			},
-			"text": "Resume",
 			"on_event": {
 				"MouseDown": [
 					{
 						"SetBackgroundColor": {
 							"r": 0,
-							"g": 255,
+							"g": 127,
 							"b": 0,
-							"a": 0
+							"a": 255
+						}
+					},
+					{
+						"SetTextColor": {
+							"r": 255,
+							"g": 255,
+							"b": 255,
+							"a": 255
 						}
 					}
 				],
@@ -64,6 +76,14 @@
 							"r": 255,
 							"g": 255,
 							"b": 255,
+							"a": 255
+						}
+					},
+					{
+						"SetTextColor": {
+							"r": 0,
+							"g": 0,
+							"b": 0,
 							"a": 255
 						}
 					},
@@ -93,18 +113,21 @@
 				"b": 255,
 				"a": 255
 			},
-			"format": {
-				"font_id": 1,
-				"color": {
-					"r": 0,
-					"g": 0,
-					"b": 0,
-					"a": 0
+			"element_type": {
+				"type": "Label",
+				"format": {
+					"font_id": 1,
+					"color": {
+						"r": 0,
+						"g": 0,
+						"b": 0,
+						"a": 0
+					},
+					"justify": "Center",
+					"align": "Center"
 				},
-				"justify": "Center",
-				"align": "Center"
+				"text": "Quit"
 			},
-			"text": "Quit",
 			"on_event": {
 				"MouseDown": [
 					{
@@ -112,7 +135,7 @@
 							"r": 255,
 							"g": 0,
 							"b": 0,
-							"a": 0
+							"a": 255
 						}
 					}
 				],

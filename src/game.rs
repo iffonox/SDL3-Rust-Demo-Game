@@ -1,5 +1,5 @@
 use crate::game_object::world::World;
-use crate::gui::{Align, TextFormat, UiElement};
+use crate::gui::{Align, ElementType, TextFormat, UiElement};
 use crate::math::bounds::Bounds;
 use crate::serialization::font::FontDefinition;
 use crate::serialization::game::{AssetDefinition, GameData, TextureDefinition};
@@ -133,10 +133,7 @@ impl<'a> Game<'a> {
                 w: settings.width as f32,
                 h: settings.height as f32,
             },
-			mouse: Mouse {
-				buttons:  MouseButtonState::NONE,
-				pos: FPoint { x: 0.0, y: 0.0 },
-			},
+			mouse: Mouse::default(),
 			system_state: SystemState {
 				should_quit: false,
 				should_show_debug: false,
@@ -339,6 +336,17 @@ impl<'a> Game<'a> {
     }
 
     fn handle_ui_events(&mut self) {
+		if self.gui_data.len() == 0 {
+			return;
+		}
+
+		let main_menu = &mut self.gui_data[0];
+
+		let Some(action) = main_menu.handle_event(self.mouse) else {
+			return;
+		};
+
+		self.actions |= action;
 	}
 
     fn render_drawables(&mut self) {
@@ -384,32 +392,20 @@ impl<'a> Game<'a> {
     fn render_ui_element(&mut self, element: &UiElement, parent_bounds: FRect) {
 		let mut bounds;
 
-        match element {
-            UiElement::Box(e) => {
-				bounds = e.bounds;
+		bounds = element.bounds;
 
-				// Offset the position by the parents positions; the elements bounds are always relative to their parent
-				bounds.x += parent_bounds.x;
-				bounds.y += parent_bounds.y;
+		// Offset the position by the parents positions; the elements bounds are always relative to their parent
+		bounds.x += parent_bounds.x;
+		bounds.y += parent_bounds.y;
 
-                self.menu_canvas.set_draw_color(e.bg);
-                self.menu_canvas
-                    .fill_rect(bounds)
-                    .expect("Failed to fill rect");
-            }
-            UiElement::Label(e) => {
-				bounds = e.bounds;
+		self.menu_canvas.set_draw_color(element.bg);
+		self.menu_canvas
+			.fill_rect(bounds)
+			.expect("Failed to fill rect");
 
-				// Offset the position by the parents positions; the elements bounds are always relative to their parent
-				bounds.x += parent_bounds.x;
-				bounds.y += parent_bounds.y;
-
-                self.menu_canvas.set_draw_color(e.bg);
-                self.menu_canvas
-                    .fill_rect(bounds)
-                    .expect("Failed to fill rect");
-
-                let surface = self.build_text_surface(&e.text, e.format);
+        match &element.element_type {
+			ElementType::Label { text, format } => {
+                let surface = self.build_text_surface(text, format);
                 let surface_width = surface.width() as f32;
                 let surface_height = surface.height() as f32;
 
@@ -418,13 +414,13 @@ impl<'a> Game<'a> {
                     .create_texture_from_surface(surface)
                     .expect("texture creation panic");
 
-                let x = match e.format.justify {
+                let x = match format.justify {
                     Align::Start => 0.0,
                     Align::Center => (bounds.w - surface_width) / 2.0,
                     Align::End => bounds.w - surface_width,
                 } + bounds.x;
 
-                let y = match e.format.align {
+                let y = match format.align {
                     Align::Start => 0.0,
                     Align::Center => (bounds.h - surface_height) / 2.0,
                     Align::End => bounds.h - surface_height,
@@ -441,9 +437,10 @@ impl<'a> Game<'a> {
                     .copy(&texture, None, Some(text_rect))
                     .expect("debug message panic");
             }
+			_ => {}
         }
 
-        let children = element.get_children();
+        let children = &element.children;
 
         for i in 0..children.len() {
             let child = &children[i];
@@ -533,7 +530,7 @@ impl<'a> Game<'a> {
         }
     }
 
-    fn build_text_surface(&self, text: &String, format: TextFormat) -> Surface<'_> {
+    fn build_text_surface(&self, text: &String, format: &TextFormat) -> Surface<'_> {
         let font = self
             .fonts
             .get(&format.font_id)
@@ -547,15 +544,14 @@ impl<'a> Game<'a> {
     }
 
     fn render_msg(&mut self, msg: &String, pos: FPoint) -> FRect {
-        let surface = self.build_text_surface(
-            msg,
-            TextFormat {
-                font_id: self.game_data.debug_font_id,
-                color: Color::WHITE,
-                justify: Align::Start,
-                align: Align::Start,
-            },
-        );
+		let format = TextFormat {
+			font_id: self.game_data.debug_font_id,
+			color: Color::WHITE,
+			justify: Align::Start,
+			align: Align::Start,
+		};
+
+        let surface = self.build_text_surface(msg, &format);
 
         let surface_width = surface.width() as f32;
         let surface_height = surface.height() as f32;

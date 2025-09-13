@@ -2,14 +2,19 @@ pub mod font;
 pub mod game;
 pub mod level;
 
-use crate::math::vector2::Vector2;
+use sdl3::render::FPoint;
 use sdl3::pixels::Color;
 use sdl3::render::FRect;
 use serde::{Deserialize, Serialize};
 
 pub type AssetId = i32;
 
-pub type AssetPosition = Vector2<f32>;
+#[derive(Deserialize, Serialize, Debug, Clone, Copy, Default)]
+#[serde(remote = "FPoint")]
+pub struct AssetPosition {
+	pub x: f32,
+	pub y: f32,
+}
 
 #[derive(Deserialize, Serialize, Debug, Clone, Copy, Default)]
 pub struct AssetSize {

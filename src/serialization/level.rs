@@ -1,5 +1,5 @@
 use crate::serialization::{AssetBounds, AssetId, AssetPosition, AssetSize};
-use sdl3::render::FRect;
+use sdl3::render::{FPoint, FRect};
 use serde::{Deserialize, Serialize};
 use crate::game_object::GameObject;
 
@@ -12,7 +12,8 @@ pub struct Player {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct LevelData {
     pub name: String,
-    pub start: AssetPosition,
+	#[serde(with = "AssetPosition")]
+    pub start: FPoint,
     #[serde(with = "AssetBounds")]
     pub bounds: FRect,
     pub player: Player,
