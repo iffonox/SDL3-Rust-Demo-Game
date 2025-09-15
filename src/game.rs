@@ -1,28 +1,19 @@
 use crate::game_object::world::World;
 use crate::gui::{Align, ElementType, TextFormat, UiElement};
 use crate::math::bounds::Bounds;
-use crate::serialization::font::FontDefinition;
-use crate::serialization::game::{AssetDefinition, GameData, TextureDefinition};
-use crate::serialization::level::LevelData;
-use crate::serialization::{AssetId};
 use sdl3::Sdl;
 use sdl3::event::Event;
-use sdl3::keyboard::{Keycode};
 use sdl3::mouse::MouseButton;
 use sdl3::pixels::{Color, PixelFormat, PixelFormatEnum};
 use sdl3::render::{FPoint, FRect, SurfaceCanvas, TextureCreator, WindowCanvas};
 use sdl3::surface::{Surface, SurfaceContext};
 use sdl3::timer::performance_frequency;
-use sdl3::ttf::{Font, Sdl3TtfContext};
+use sdl3::ttf::{Sdl3TtfContext};
 use sdl3::video::WindowContext;
-use serde::de::DeserializeOwned;
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
 use crate::actions::Action;
+use crate::game_assets::GameAssets;
 use crate::mouse::{Mouse, MouseButtonState};
 use crate::settings::{Settings};
 
@@ -48,22 +39,16 @@ struct SystemState {
 }
 
 pub struct Game<'a> {
-    keymap: HashMap<Keycode, Action>,
     actions: Action,
-    game_data: GameData,
     sdl_context: &'a Sdl,
     main_texture_creator: TextureCreator<WindowContext>,
     menu_texture_creator: TextureCreator<SurfaceContext<'a>>,
     main_canvas: WindowCanvas,
     menu_canvas: SurfaceCanvas<'a>,
-    fonts: HashMap<AssetId, Font<'a>>,
-    surfaces: HashMap<AssetId, Surface<'a>>,
     world: World,
-    bg_color: Color,
-    level_data: Vec<LevelData>,
-    gui_data: Vec<UiElement>,
 	performance_frequency: f64,
 	settings: Settings,
+	assets: GameAssets<'a>,
 	frame_data: FrameData,
     window_bounds: FRect,
 	mouse: Mouse,
@@ -74,10 +59,11 @@ pub struct Game<'a> {
 impl<'a> Game<'a> {
     pub fn new(
         settings: Settings,
-        game_data: GameData,
         sdl_context: &'a Sdl,
         ttf_context: &'a Sdl3TtfContext,
     ) -> Self {
+		let assets = GameAssets::new(&settings.asset_file, ttf_context);
+
         let video_subsystem = sdl_context.video().unwrap();
 
         let window = video_subsystem
@@ -87,15 +73,6 @@ impl<'a> Game<'a> {
             .unwrap();
 
         let canvas = window.into_canvas();
-
-        let fonts = Self::load_fonts(&game_data.fonts, ttf_context);
-
-        let surfaces = Self::load_surfaces(&game_data.textures);
-
-        let keymap = Self::load_keymap();
-
-        let level_data = Self::load_definitions(&game_data.levels);
-        let gui_data = Self::load_definitions(&game_data.guis);
 
         let menu_canvas = SurfaceCanvas::from_surface(
             Surface::new(settings.width as u32, settings.height as u32, PixelFormat::from(PixelFormatEnum::ARGB8888))
@@ -110,29 +87,23 @@ impl<'a> Game<'a> {
 		let min_frame_time: MilliSeconds =  1_000u64 / settings.frame_limit as u64;
 
         Self {
-            keymap,
             actions: Action::NONE,
-            game_data,
-            level_data,
-            gui_data,
             main_texture_creator,
             menu_texture_creator,
-            surfaces,
             world: World::new(settings.width as f32, settings.height as f32),
             sdl_context,
             main_canvas: canvas,
             menu_canvas,
-            fonts,
             performance_frequency: performance_frequency() as f64,
-            bg_color: Color::WHITE,
 			frame_data: FrameData::default(),
-			settings,
             window_bounds: FRect {
                 x: 0.0,
                 y: 0.0,
                 w: settings.width as f32,
                 h: settings.height as f32,
             },
+			settings,
+			assets,
 			mouse: Mouse::default(),
 			system_state: SystemState {
 				should_quit: false,
@@ -143,88 +114,8 @@ impl<'a> Game<'a> {
         }
     }
 
-    fn load_surfaces(texture_definitions: &[TextureDefinition]) -> HashMap<AssetId, Surface<'a>> {
-        let mut surfaces = HashMap::with_capacity(texture_definitions.len());
-
-        for i in 0..texture_definitions.len() {
-            let texture_definition = &texture_definitions[i];
-            let path = Path::new(&texture_definition.path);
-            let surface = Surface::load_bmp(path).expect("image load error");
-
-            surfaces.insert(texture_definition.id, surface);
-        }
-
-        surfaces
-    }
-
-    fn load_fonts(
-        font_definitions: &[FontDefinition],
-        ttf_context: &Sdl3TtfContext,
-    ) -> HashMap<AssetId, Font<'a>> {
-        let mut fonts = HashMap::with_capacity(font_definitions.len());
-
-        for i in 0..font_definitions.len() {
-            let font_definition = &font_definitions[i];
-            let path = Path::new(&font_definition.path);
-            let surface = ttf_context
-                .load_font(path, font_definition.size)
-                .expect("Font loading error");
-
-            fonts.insert(font_definition.id, surface);
-        }
-
-        fonts
-    }
-
-    fn load_keymap() -> HashMap<Keycode, Action> {
-        let mut keymap = HashMap::new();
-
-        // Load keymap, will later be loaded from a config file
-
-        keymap.insert(Keycode::Escape, Action::MENU);
-        keymap.insert(Keycode::F2, Action::DEBUG);
-        keymap.insert(Keycode::F3, Action::FPS_LIMIT);
-        keymap.insert(Keycode::W, Action::MOVE_UP);
-        keymap.insert(Keycode::A, Action::MOVE_LEFT);
-        keymap.insert(Keycode::S, Action::MOVE_DOWN);
-        keymap.insert(Keycode::D, Action::MOVE_RIGHT);
-        keymap.insert(Keycode::Space, Action::JUMP);
-        keymap.insert(Keycode::LShift, Action::SPRINT);
-        keymap.insert(Keycode::LCtrl, Action::DUCK);
-        keymap.insert(Keycode::RCtrl, Action::ATTACK);
-
-        keymap
-    }
-
-    fn load_definitions<T>(definitions: &[AssetDefinition]) -> Vec<T>
-    where
-        T: DeserializeOwned,
-    {
-        let mut results = Vec::with_capacity(definitions.len());
-
-        for i in 0..definitions.len() {
-            let definition = &definitions[i];
-            let path = Path::new(&definition.path);
-
-            let mut path_error = String::from("Could not open asset json: ");
-            path_error.push_str(&definition.path);
-
-            let file = File::open(path).expect(&path_error);
-            let reader = BufReader::new(file);
-
-            let mut parse_error = String::from("Could not parse asset json: ");
-            parse_error.push_str(&definition.path);
-
-            let asset = serde_json::from_reader(reader).expect(&parse_error);
-
-            results.push(asset)
-        }
-
-        results
-    }
-
     fn init(&mut self) {
-        let level = self.level_data.get(0).expect("no level data available");
+        let level = self.assets.level_data.get(0).expect("no level data available");
         let mut title = WINDOW_TITLE.to_owned();
         title.push_str(" - ");
         title.push_str(&level.name);
@@ -258,13 +149,15 @@ impl<'a> Game<'a> {
     }
 
     fn register_events(&mut self, event: Event) {
+		self.mouse.buttons = MouseButtonState::NONE;
+
         match event {
             Event::KeyDown {
                 keycode: Some(keycode),
                 repeat: false,
                 ..
             } => {
-                if let Some(action) = self.keymap.get(&keycode) {
+                if let Some(action) = self.assets.keymap.get(&keycode) {
                     self.actions |= *action;
                 }
             }
@@ -272,7 +165,7 @@ impl<'a> Game<'a> {
                 keycode: Some(keycode),
                 ..
             } => {
-                if let Some(action) = self.keymap.get(&keycode) {
+                if let Some(action) = self.assets.keymap.get(&keycode) {
                     self.actions &= (*action).not();
                 }
             }
@@ -336,11 +229,11 @@ impl<'a> Game<'a> {
     }
 
     fn handle_ui_events(&mut self) {
-		if self.gui_data.len() == 0 {
+		if self.assets.gui_data.len() == 0 {
 			return;
 		}
 
-		let main_menu = &mut self.gui_data[0];
+		let main_menu = &mut self.assets.gui_data[0];
 
 		let Some(action) = main_menu.handle_event(self.mouse) else {
 			return;
@@ -354,7 +247,7 @@ impl<'a> Game<'a> {
 
         for (rect, drawable) in drawables {
             if let Some(texture_index) = drawable.texture_id
-                && let Some(surface) = self.surfaces.get(&texture_index)
+                && let Some(surface) = self.assets.surfaces.get(&texture_index)
             {
                 if let Ok(mut texture) = self
                     .main_texture_creator
@@ -453,7 +346,7 @@ impl<'a> Game<'a> {
         self.menu_canvas.set_draw_color(Color::RGBA(0, 0, 0, 0));
         self.menu_canvas.clear();
 
-        if let Some(main_menu) = self.gui_data.get(0) {
+        if let Some(main_menu) = self.assets.gui_data.get(0) {
             let e = main_menu.clone();
 
             self.render_ui_element(&e, self.window_bounds);
@@ -485,7 +378,7 @@ impl<'a> Game<'a> {
         let delta_t = now - self.frame_data.last_tick;
         let delta_t_sec = delta_t as f64 / self.performance_frequency;
 
-        self.main_canvas.set_draw_color(self.bg_color);
+        self.main_canvas.set_draw_color(Color::WHITE);
         self.main_canvas.clear();
 
         if !self.system_state.menu_open {
@@ -532,6 +425,7 @@ impl<'a> Game<'a> {
 
     fn build_text_surface(&self, text: &String, format: &TextFormat) -> Surface<'_> {
         let font = self
+			.assets
             .fonts
             .get(&format.font_id)
             .expect("Invalid debug font id");
@@ -545,7 +439,7 @@ impl<'a> Game<'a> {
 
     fn render_msg(&mut self, msg: &String, pos: FPoint) -> FRect {
 		let format = TextFormat {
-			font_id: self.game_data.debug_font_id,
+			font_id: self.assets.game_data.debug_font_id,
 			color: Color::WHITE,
 			justify: Align::Start,
 			align: Align::Start,

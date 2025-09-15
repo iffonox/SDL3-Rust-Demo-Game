@@ -8,6 +8,7 @@ mod actions;
 mod mouse;
 mod settings;
 mod errors;
+mod game_assets;
 
 use std::fs;
 use crate::game::Game;
@@ -28,9 +29,6 @@ fn main() {
 
     seed_random(now.as_secs() as u32);
 
-    let data_path = Path::new("./assets/assets.json");
-    let game_data = load_game_data(data_path).expect("Could not parse assets.json");
-
 	let settings_path = Path::new("./settings.toml");
 	let settings = load_game_setting(settings_path).expect("Could not parse assets.json");
 
@@ -41,22 +39,11 @@ fn main() {
 
     let mut game: Game = Game::new(
 		settings,
-        game_data,
         &sdl_context,
         &ttf_context,
     );
 
     game.run();
-}
-
-fn load_game_data(path: &Path) -> Result<GameData, DataLoadError> {
-	let Ok(file) = File::open(path) else {
-		return Err(DataLoadError { path: path.to_path_buf() });
-	};
-
-	let reader = BufReader::new(file);
-
-	serde_json::from_reader(reader).map_err(|_| DataLoadError { path: path.to_path_buf() })
 }
 
 fn load_game_setting(path: &Path) -> Result<Settings, DataLoadError> {

@@ -2,3 +2,4 @@ width = 800
 height = 600
 frame_limit_active = true
 frame_limit = 60
+asset_file = "./assets/assets.json"
