@@ -84,19 +84,6 @@ pub struct BehaviourResult {
 	pub impulse: Option<PhysicsVector>,
 }
 
-pub trait Behaviour {
-    fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult;
-}
-
-pub(crate) const fn _default_rect() -> FRect {
-	FRect {
-		x: 0.0,
-		y: 0.0,
-		w: 0.0,
-		h: 0.0,
-	}
-}
-
 #[derive(Deserialize, Serialize, Debug, Clone, Copy)]
 #[serde(tag = "type")]
 pub enum BehaviourType {
@@ -111,7 +98,7 @@ impl BehaviourType {
 	pub fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult
 	{
 		match self {
-			Self::Physics(behavior) => {
+			BehaviourType::Physics(behavior) => {
 				behavior.tick(params, delta_t)
 			}
 			BehaviourType::Dvd(behavior) => {

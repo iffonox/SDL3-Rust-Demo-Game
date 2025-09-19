@@ -1,5 +1,5 @@
 use crate::game_object::{PhysicsVector};
-use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
+use crate::game_object::behaviour::{BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
 use crate::math::VectorOps;
 use serde::{Deserialize, Serialize};
@@ -26,8 +26,8 @@ impl ControllableBehaviour {
     }
 }
 
-impl Behaviour for ControllableBehaviour {
-    fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult {
+impl ControllableBehaviour {
+	pub fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult {
         let sec = delta_t as f32;
 		let bounds = params.bounds;
         let actions = params.actions;
