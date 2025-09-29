@@ -1,7 +1,7 @@
 use crate::game_object::behaviour::_ser_optional_rect;
 use crate::game_object::behaviour::_de_optional_rect;
 use crate::game_object::PhysicsVector;
-use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
+use crate::game_object::behaviour::{BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
 use sdl3::render::FRect;
 use sdl3::sys::everything::SDL_STANDARD_GRAVITY;
@@ -32,8 +32,8 @@ impl PhysicsBehaviour {
     }
 }
 
-impl Behaviour for PhysicsBehaviour {
-    fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult {
+impl PhysicsBehaviour {
+	pub fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult {
         let sec = delta_t as f32;
         let center = params.bounds.center();
         let mut position = PhysicsVector::from(center) * METERS_PER_PIXEL;

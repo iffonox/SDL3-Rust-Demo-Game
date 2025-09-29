@@ -1,4 +1,4 @@
-use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult};
+use crate::game_object::behaviour::{BehaviourParameter, BehaviourResult};
 use crate::math::bounds::Bounds;
 use serde::{Deserialize, Serialize};
 use crate::game_object::{BoundInfo, ObjectMask};
@@ -17,8 +17,8 @@ impl CollisionBehaviour {
     }
 }
 
-impl Behaviour for CollisionBehaviour {
-    fn tick(&mut self, params: BehaviourParameter, _: f64) -> BehaviourResult {
+impl CollisionBehaviour {
+    pub fn tick(&mut self, params: BehaviourParameter, _: f64) -> BehaviourResult {
         let mut collisions: Vec<BoundInfo> = Vec::new();
 
         let bounds = params.bounds;

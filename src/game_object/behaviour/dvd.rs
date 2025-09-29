@@ -1,7 +1,7 @@
 use crate::game_object::behaviour::_ser_optional_rect;
 use crate::game_object::behaviour::_de_optional_rect;
 use crate::game_object::PhysicsVector;
-use crate::game_object::behaviour::{Behaviour, BehaviourParameter, BehaviourResult, BehaviourSpeed};
+use crate::game_object::behaviour::{BehaviourParameter, BehaviourResult, BehaviourSpeed};
 use crate::math::bounds::Bounds;
 use sdl3::render::FRect;
 use serde::{Deserialize, Deserializer, Serialize};
@@ -30,8 +30,8 @@ impl DvdBehaviour {
     }
 }
 
-impl Behaviour for DvdBehaviour {
-    fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult {
+impl DvdBehaviour {
+	pub fn tick(&mut self, params: BehaviourParameter, delta_t: f64) -> BehaviourResult {
         let center = params.bounds.center();
         let mut position = PhysicsVector::from(center);
 		let clamp_bounds = self.bounds.unwrap_or(params.world_bounds);
