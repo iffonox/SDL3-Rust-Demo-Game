@@ -211,7 +211,7 @@ impl UiElement {
 
 		e.mouse = mouse;
 
-		let Some(event) = Self::get_event_type(&prev_state, &mouse) else {
+		let Some(event) = Self::get_event_type(&prev_state, &e.mouse) else {
 			self.update_element(e);
 			return None;
 		};

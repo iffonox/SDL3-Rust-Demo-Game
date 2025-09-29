@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use crate::game_object::world::World;
 use crate::gui::{Align, ElementType, TextFormat, UiElement};
 use crate::math::bounds::Bounds;
@@ -39,7 +40,7 @@ struct SystemState {
 }
 
 pub struct Game<'a> {
-    actions: Action,
+    actions: HashSet<Action>,
     sdl_context: &'a Sdl,
     main_texture_creator: TextureCreator<WindowContext>,
     menu_texture_creator: TextureCreator<SurfaceContext<'a>>,
@@ -87,7 +88,7 @@ impl<'a> Game<'a> {
 		let min_frame_time: MilliSeconds =  1_000u64 / settings.frame_limit as u64;
 
         Self {
-            actions: Action::NONE,
+            actions: HashSet::new(),
             main_texture_creator,
             menu_texture_creator,
             world: World::new(settings.width as f32, settings.height as f32),
@@ -158,7 +159,7 @@ impl<'a> Game<'a> {
                 ..
             } => {
                 if let Some(action) = self.assets.keymap.get(&keycode) {
-                    self.actions |= *action;
+                    self.actions.insert(*action);
                 }
             }
             Event::KeyUp {
@@ -166,7 +167,7 @@ impl<'a> Game<'a> {
                 ..
             } => {
                 if let Some(action) = self.assets.keymap.get(&keycode) {
-                    self.actions &= (*action).not();
+                    self.actions.remove(action);
                 }
             }
 			Event::MouseMotion { x, y, .. } => {
@@ -195,31 +196,31 @@ impl<'a> Game<'a> {
 				}.not()
             }
             Event::Quit { .. } => {
-                self.actions |= Action::QUIT;
+				self.actions.insert(Action::Quit);
             }
             _ => {}
         }
     }
 
     fn handle_system_events(&mut self) {
-        if self.actions.contains(Action::QUIT) {
+        if self.actions.contains(&Action::Quit) {
             self.system_state.should_quit = true;
             return;
         }
 
-        if self.actions.contains(Action::MENU) {
-            self.actions &= Action::MENU.not();
+        if self.actions.contains(&Action::Menu) {
+			self.actions.remove(&Action::Menu);
             self.system_state.menu_open = !self.system_state.menu_open;
             self.frame_data.last_tick = 0;
         }
 
-        if self.actions.contains(Action::FPS_LIMIT) {
-            self.actions &= Action::FPS_LIMIT.not();
+        if self.actions.contains(&Action::FpsLimit) {
+			self.actions.remove(&Action::FpsLimit);
             self.settings.frame_limit_active = !self.settings.frame_limit_active
         }
 
-        if self.actions.contains(Action::DEBUG) {
-            self.actions &= Action::DEBUG.not();
+        if self.actions.contains(&Action::Debug) {
+			self.actions.remove(&Action::Debug);
             self.system_state.should_show_debug = !self.system_state.should_show_debug
         }
 
@@ -239,7 +240,7 @@ impl<'a> Game<'a> {
 			return;
 		};
 
-		self.actions |= action;
+		self.actions.insert(action);
 	}
 
     fn render_drawables(&mut self) {
@@ -382,7 +383,7 @@ impl<'a> Game<'a> {
         self.main_canvas.clear();
 
         if !self.system_state.menu_open {
-            self.world.tick(delta_t_sec, self.actions);
+            self.world.tick(delta_t_sec, &self.actions);
         }
 
         self.render_drawables();

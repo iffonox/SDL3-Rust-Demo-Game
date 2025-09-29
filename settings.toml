@@ -3,3 +3,16 @@ height = 600
 frame_limit_active = true
 frame_limit = 60
 asset_file = "./assets/assets.json"
+
+#[keymap]
+#Escape = "Menu"
+#F2 = "Debug"
+#F3 = "FpsLimit"
+#W = "MoveUp"
+#A = "MoveLeft"
+#S = "MoveDown"
+#D = "MoveRight"
+#Space = "Jump"
+#LShift = "Sprint"
+#LCtrl = "Duck"
+#RCtrl = "Attack"

@@ -3,6 +3,7 @@ pub mod controllable;
 pub mod dvd;
 pub mod physics;
 
+use std::collections::HashSet;
 use crate::serialization::{AssetBounds, AssetId};
 use sdl3::render::FRect;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -68,7 +69,7 @@ impl From<PhysicsVector> for BehaviourSpeed {
 pub struct BehaviourParameter<'a> {
     pub id: AssetId,
     pub bounds: FRect,
-    pub actions: Action,
+    pub actions: &'a HashSet<Action>,
 	pub world_bounds: FRect,
     pub other_bounds: &'a Vec<BoundInfo>,
 	pub collisions: &'a Vec<CollisionInfo>,

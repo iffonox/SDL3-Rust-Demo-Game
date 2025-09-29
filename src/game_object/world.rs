@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use crate::game_object::behaviour::collision::CollisionBehaviour;
 use crate::game_object::behaviour::controllable::ControllableBehaviour;
 use crate::game_object::behaviour::physics::PhysicsBehaviour;
@@ -89,7 +90,7 @@ impl World {
             .sort_by_key(|b| b.drawable.as_ref().map(|d| d.z).unwrap());
     }
 
-    pub fn tick(&mut self, delta_t: f64, actions: Action) {
+    pub fn tick(&mut self, delta_t: f64, actions: &HashSet<Action>) {
         let rects: Vec<BoundInfo> = self.game_objects.iter().map(|o| (o.id, o.bounds, o.mask)).collect();
 
         for i in 0..self.game_objects.len() {

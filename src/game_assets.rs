@@ -126,17 +126,17 @@ fn load_keymap() -> HashMap<Keycode, Action> {
 
 	// Load keymap, will later be loaded from a config file
 
-	keymap.insert(Keycode::Escape, Action::MENU);
-	keymap.insert(Keycode::F2, Action::DEBUG);
-	keymap.insert(Keycode::F3, Action::FPS_LIMIT);
-	keymap.insert(Keycode::W, Action::MOVE_UP);
-	keymap.insert(Keycode::A, Action::MOVE_LEFT);
-	keymap.insert(Keycode::S, Action::MOVE_DOWN);
-	keymap.insert(Keycode::D, Action::MOVE_RIGHT);
-	keymap.insert(Keycode::Space, Action::JUMP);
-	keymap.insert(Keycode::LShift, Action::SPRINT);
-	keymap.insert(Keycode::LCtrl, Action::DUCK);
-	keymap.insert(Keycode::RCtrl, Action::ATTACK);
+	keymap.insert(Keycode::Escape, Action::Menu);
+	keymap.insert(Keycode::F2, Action::Debug);
+	keymap.insert(Keycode::F3, Action::FpsLimit);
+	keymap.insert(Keycode::W, Action::MoveUp);
+	keymap.insert(Keycode::A, Action::MoveLeft);
+	keymap.insert(Keycode::S, Action::MoveDown);
+	keymap.insert(Keycode::D, Action::MoveRight);
+	keymap.insert(Keycode::Space, Action::Jump);
+	keymap.insert(Keycode::LShift, Action::Sprint);
+	keymap.insert(Keycode::LCtrl, Action::Duck);
+	keymap.insert(Keycode::RCtrl, Action::Attack);
 
 	keymap
 }

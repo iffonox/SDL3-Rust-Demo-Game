@@ -88,9 +88,7 @@
 						}
 					},
 					{
-						"Action": {
-							"bits": 2048
-						}
+						"Action": "Menu"
 					}
 				]
 			}
@@ -149,9 +147,7 @@
 						}
 					},
 					{
-						"Action": {
-							"bits": 1
-						}
+						"Action": "Quit"
 					}
 				]
 			}

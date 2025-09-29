@@ -12,11 +12,8 @@ mod game_assets;
 
 use std::fs;
 use crate::game::Game;
-use crate::serialization::game::GameData;
 use crate::util::seed_random;
 use sdl3::ttf;
-use std::fs::File;
-use std::io::{BufReader};
 use std::path::{Path};
 use std::time::SystemTime;
 use crate::errors::DataLoadError;

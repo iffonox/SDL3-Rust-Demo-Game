@@ -4,6 +4,7 @@ pub mod drawable;
 
 extern crate sdl3;
 
+use std::collections::HashSet;
 use crate::serialization::AssetBounds;
 use crate::game_object::behaviour::{BehaviourParameter, BehaviourType};
 use crate::math::bounds::Bounds;
@@ -46,7 +47,7 @@ impl GameObject {
         }
     }
 
-    pub fn tick(&mut self, delta_t: f64, world_bounds: FRect, actions: Action, other_bounds: &Vec<BoundInfo>) {
+    pub fn tick(&mut self, delta_t: f64, world_bounds: FRect, actions: &HashSet<Action>, other_bounds: &Vec<BoundInfo>) {
         let behaviours = &mut self.behaviours;
         let mut bounds = self.bounds;
 		let mut collisions = Vec::new();
