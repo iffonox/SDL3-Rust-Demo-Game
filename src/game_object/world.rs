@@ -8,6 +8,7 @@ use crate::serialization::level::LevelData;
 use sdl3::pixels::Color;
 use sdl3::render::FRect;
 use crate::actions::Action;
+use crate::serialization::AssetId;
 
 #[derive(PartialEq, Eq, Debug, Default)]
 pub enum BorderType {
@@ -26,7 +27,6 @@ pub struct Borders {
 
 pub struct World {
     bounds: FRect,
-    scale: f32,
     borders: Borders,
     game_objects: Vec<GameObject>,
 }
@@ -40,7 +40,6 @@ impl World {
                 w,
                 h,
             },
-            scale: 1.0,
             borders: Borders::default(),
             game_objects: Vec::new(),
         }
@@ -53,7 +52,7 @@ impl World {
 		self.bounds = level_data.bounds;
 
 		let player_data = &level_data.player;
-        let mut player = GameObject::new(-1);
+        let mut player = GameObject::new(AssetId::MAX);
         player.bounds = FRect {
             x: level_data.start.x,
             y: level_data.start.y,

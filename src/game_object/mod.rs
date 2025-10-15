@@ -5,7 +5,7 @@ pub mod drawable;
 extern crate sdl3;
 
 use std::collections::HashSet;
-use crate::serialization::AssetBounds;
+use crate::serialization::{AssetBounds, AssetId};
 use crate::game_object::behaviour::{BehaviourParameter, BehaviourType};
 use crate::math::bounds::Bounds;
 use crate::math::vector2::Vector2;
@@ -17,12 +17,12 @@ use crate::game_object::drawable::{DrawLayer, Drawable};
 pub type PhysicsVector = Vector2<f32>;
 
 pub type ObjectMask = u32;
-pub type BoundInfo = (i32, FRect, ObjectMask);
+pub type BoundInfo = (AssetId, FRect, ObjectMask);
 pub type CollisionInfo = BoundInfo;
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GameObject {
-    pub id: i32,
+    pub id: AssetId,
 	#[serde(with = "AssetBounds")]
     pub bounds: FRect,
 	#[serde(default)]
@@ -32,7 +32,7 @@ pub struct GameObject {
 }
 
 impl GameObject {
-    pub fn new(id: i32) -> Self {
+    pub fn new(id: AssetId) -> Self {
         Self {
             id,
 			bounds: FRect {

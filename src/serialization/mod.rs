@@ -7,7 +7,7 @@ use sdl3::pixels::Color;
 use sdl3::render::FRect;
 use serde::{Deserialize, Serialize};
 
-pub type AssetId = i32;
+pub type AssetId = usize;
 
 #[derive(Deserialize, Serialize, Debug, Clone, Copy, Default)]
 #[serde(remote = "FPoint")]

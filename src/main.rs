@@ -9,6 +9,7 @@ mod mouse;
 mod settings;
 mod errors;
 mod game_assets;
+mod ecs;
 
 use std::fs;
 use crate::game::Game;
